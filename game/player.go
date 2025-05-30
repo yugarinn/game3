@@ -75,10 +75,76 @@ func (player *Player) Draw() {
 }
 
 func (player *Player) Tick(delta float32, room *Room) {
+	player.ProcessInput(delta)
 	player.CalculateVelocity(delta)
 	player.UpdateState()
 	player.UpdatePosition(delta, room)
 	player.UpdateAnimation()
+}
+
+func (player *Player) ProcessInput(delta float32) {
+	moveLeft := rl.IsKeyDown(rl.KeyA)
+	moveRight := rl.IsKeyDown(rl.KeyD)
+	jump := rl.IsKeyDown(rl.KeySpace)
+	reset := rl.IsKeyPressed(rl.KeyR)
+
+	if reset {
+		player.Position = rl.NewVector2(10, 10)
+		return
+	}
+
+	if moveLeft && !moveRight {
+		if player.Velocity.X > 0 {
+			player.Velocity.X = 5
+		}
+
+		player.FacingDirection = "LEFT"
+
+		if player.Velocity.X > -PLAYER_MOVE_SPEED {
+			player.Velocity.X -= PLAYER_ACCELERATION * delta
+
+			if player.Velocity.X < -PLAYER_MOVE_SPEED {
+				player.Velocity.X = -PLAYER_MOVE_SPEED
+			}
+		}
+	}
+
+	if moveRight && !moveLeft {
+		if player.Velocity.X < 0 {
+			player.Velocity.X = -5
+		}
+
+		player.FacingDirection = "RIGHT"
+
+		if player.Velocity.X < PLAYER_MOVE_SPEED {
+			player.Velocity.X += PLAYER_ACCELERATION * delta
+
+			if player.Velocity.X > PLAYER_MOVE_SPEED {
+				player.Velocity.X = PLAYER_MOVE_SPEED
+			}
+		}
+	}
+
+	if !moveLeft && !moveRight {
+		if player.Velocity.X > 0 {
+			player.Velocity.X -= PLAYER_DECELERATION * delta
+
+			if player.Velocity.X < 0 {
+				player.Velocity.X = 0
+			}
+		} else if player.Velocity.X < 0 {
+			player.Velocity.X += PLAYER_DECELERATION * delta
+
+			if player.Velocity.X > 0 {
+				player.Velocity.X = 0
+			}
+		}
+	}
+
+	if jump && player.OnGround {
+		player.Velocity.Y = PLAYER_JUMP_FORCE
+		player.OnGround = false
+	}
 }
 
 func (player *Player) CalculateVelocity(delta float32) {
@@ -100,14 +166,22 @@ func (player *Player) UpdatePosition(delta float32, room *Room) {
 }
 
 func (player *Player) UpdateState() {
+	var isRunning bool
+
 	if player.Velocity.X != 0 {
-		player.IsRunning = true
+		isRunning = true
 		player.FramesSpeed = 6
 	}
 
 	if player.Velocity.X == 0 {
-		player.IsRunning = false
+		isRunning = false
 		player.FramesSpeed = 2
+	}
+
+	// This immediately resets the animaton frame
+	if isRunning != player.IsRunning {
+		player.CurrentFrame = 0
+		player.IsRunning = isRunning
 	}
 }
 

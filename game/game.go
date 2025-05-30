@@ -1,8 +1,6 @@
 package game
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -67,8 +65,6 @@ func (game *Game) Tick(delta float32) {
 		return
 	}
 
-	game.ProcessInput(delta)
-
 	game.Player.Tick(delta, game.CurrentRoom)
 
 	game.CurrentRoom.Draw()
@@ -76,73 +72,6 @@ func (game *Game) Tick(delta float32) {
 
 	game.IncreaseFrameCount()
 	game.LogState()
-}
-
-func (game *Game) ProcessInput(delta float32) {
-	fmt.Println(delta)
-
-	moveLeft := rl.IsKeyDown(rl.KeyA)
-	moveRight := rl.IsKeyDown(rl.KeyD)
-	jump := rl.IsKeyDown(rl.KeySpace)
-	reset := rl.IsKeyPressed(rl.KeyR)
-
-	if reset {
-		game.Player.Position = rl.NewVector2(10, 10)
-		return
-	}
-
-	if moveLeft && !moveRight {
-		if game.Player.Velocity.X > 0 {
-			game.Player.Velocity.X = 5
-		}
-
-		game.Player.FacingDirection = "LEFT"
-
-		if game.Player.Velocity.X > -PLAYER_MOVE_SPEED {
-			game.Player.Velocity.X -= PLAYER_ACCELERATION * delta
-
-			if game.Player.Velocity.X < -PLAYER_MOVE_SPEED {
-				game.Player.Velocity.X = -PLAYER_MOVE_SPEED
-			}
-		}
-	}
-
-	if moveRight && !moveLeft {
-		if game.Player.Velocity.X < 0 {
-			game.Player.Velocity.X = -5
-		}
-
-		game.Player.FacingDirection = "RIGHT"
-
-		if game.Player.Velocity.X < PLAYER_MOVE_SPEED {
-			game.Player.Velocity.X += PLAYER_ACCELERATION * delta
-
-			if game.Player.Velocity.X > PLAYER_MOVE_SPEED {
-				game.Player.Velocity.X = PLAYER_MOVE_SPEED
-			}
-		}
-	}
-
-	if !moveLeft && !moveRight {
-		if game.Player.Velocity.X > 0 {
-			game.Player.Velocity.X -= PLAYER_DECELERATION * delta
-
-			if game.Player.Velocity.X < 0 {
-				game.Player.Velocity.X = 0
-			}
-		} else if game.Player.Velocity.X < 0 {
-			game.Player.Velocity.X += PLAYER_DECELERATION * delta
-
-			if game.Player.Velocity.X > 0 {
-				game.Player.Velocity.X = 0
-			}
-		}
-	}
-
-	if jump && game.Player.OnGround {
-		game.Player.Velocity.Y = PLAYER_JUMP_FORCE
-		game.Player.OnGround = false
-	}
 }
 
 func (game *Game) LogState() {
