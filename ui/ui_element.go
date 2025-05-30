@@ -9,11 +9,6 @@ type UiHorizontalPosition string
 type EventListener func()
 
 const (
-	VIRTUAL_WINDOW_WIDTH  int = 320
-	VIRTUAL_WINDOW_HEIGHT int = 180
-)
-
-const (
 	HCentered UiHorizontalPosition = "hcenter"
 	Top       UiHorizontalPosition = "top"
 	Right     UiVerticalPosition   = "right"
@@ -110,7 +105,6 @@ func (e *UiElement) DrawText() {
 	}
 
 	xPosition, yPosition := getRectanglePosition(e.Rectangle, e.Rectangle.Width / 2, e.Rectangle.Height / 2, HCentered, VCentered, UiMargin{})
-
 	rl.DrawText(e.Text, int32(xPosition), int32(yPosition), 7, rl.White)
 }
 

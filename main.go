@@ -43,12 +43,18 @@ func main() {
 	for ! rl.WindowShouldClose() {
 		updateScreenScale()
 
+		delta := rl.GetFrameTime()
+
 		rl.BeginTextureMode(virtualScreen)
 		{
 			rl.ClearBackground(rl.Black)
 
 			if instance.State == game.MainMenu {
 				ui.ShowMainMenu(instance)
+			}
+
+			if instance.State == game.Playing {
+				instance.Tick(delta)
 			}
 		}
 		rl.EndTextureMode()
@@ -76,6 +82,8 @@ func updateScreenScale() {
 
 	offset.X = (float32(windowWidth) - (float32(VIRTUAL_WINDOW_WIDTH) * scale)) * 0.5
 	offset.Y = (float32(windowHeight) - (float32(VIRTUAL_WINDOW_HEIGHT) * scale)) * 0.5
+
+	rl.SetMouseScale(1 / scale, 1 / scale)
 }
 
 func projectVirtualScreenToWindow() {
