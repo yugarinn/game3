@@ -3,6 +3,7 @@ package main
 import (
 	"game3/game"
 	"game3/ui"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -55,6 +56,7 @@ func main() {
 
 			if instance.State == game.Playing {
 				instance.Tick(delta)
+				time.Sleep(time.Millisecond * 100)
 			}
 		}
 		rl.EndTextureMode()
