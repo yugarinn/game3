@@ -56,22 +56,28 @@ func InitPlayer() *Player {
 		AttackTime:      0.2,
 	}
 
-	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 10, 17)
+	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 9, 17)
 
 	return &player
 }
 
 func (player *Player) Draw() {
+	var spriteVector rl.Vector2
+
 	if player.FacingDirection == "RIGHT" {
+		spriteVector = player.Position
 		player.TextureRect.Width = 16
 	}
 
 	if player.FacingDirection == "LEFT" {
 		player.TextureRect.Width = -16
+		// weird hack, the recommended way to flip a texture in raylib (negating the width) offsets it...
+		spriteVector = rl.NewVector2(player.Position.X - 6, player.Position.Y)
 	}
 
-	rl.DrawTextureRec(player.Sprite, player.TextureRect, player.Position, rl.White)
-	// rl.DrawRectangleLinesEx(player.HitboxRect, 1, rl.Red)
+	rl.DrawTextureRec(player.Sprite, player.TextureRect, spriteVector, rl.White)
+	rl.DrawRectangleLinesEx(player.HitboxRect, 1, rl.NewColor(230, 41, 55, 100))
+	rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
 }
 
 func (player *Player) Tick(delta float32, room *Room) {
@@ -202,7 +208,7 @@ func (player *Player) UpdateAnimation() {
 			player.CurrentFrame = 0
 		}
 
-		if player.IsRunning && player.CurrentFrame > 7 {
+		if player.IsRunning && player.CurrentFrame > 3 {
 			player.CurrentFrame = 0
 		}
 
