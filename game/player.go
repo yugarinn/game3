@@ -1,8 +1,6 @@
 package game
 
 import (
-	"log"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"game3/assets"
@@ -12,9 +10,9 @@ const (
 	PLAYER_WIDTH        float32 = 24
 	PLAYER_HEIGHT       float32 = 24
 	PLAYER_MOVE_SPEED   float32 = 120
-	PLAYER_ACCELERATION float32 = 700
+	PLAYER_ACCELERATION float32 = 1000
 	PLAYER_DECELERATION float32 = 1100
-	PLAYER_JUMP_FORCE   float32 = -300
+	PLAYER_JUMP_FORCE   float32 = -280
 )
 
 type Player struct {
@@ -41,7 +39,7 @@ func InitPlayer() *Player {
 	playerImage := rl.LoadImageFromMemory(".png", assets.PLAYER_SPRITE_DATA, int32(len(assets.PLAYER_SPRITE_DATA)))
 
 	player := Player{
-		Position:        rl.NewVector2(10, 100),
+		Position:        rl.NewVector2(10, 140),
 		Velocity:        rl.NewVector2(0, 0),
 		OnGround:        false,
 		MaxHealth:       20,
@@ -76,8 +74,8 @@ func (player *Player) Draw() {
 	}
 
 	rl.DrawTextureRec(player.Sprite, player.TextureRect, spriteVector, rl.White)
-	rl.DrawRectangleLinesEx(player.HitboxRect, 1, rl.NewColor(230, 41, 55, 100))
-	rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
+	// rl.DrawRectangleLinesEx(player.HitboxRect, 1, rl.NewColor(230, 41, 55, 100))
+	// rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
 }
 
 func (player *Player) Tick(delta float32, room *Room) {
@@ -89,8 +87,8 @@ func (player *Player) Tick(delta float32, room *Room) {
 }
 
 func (player *Player) ProcessInput(delta float32) {
-	moveLeft := rl.IsKeyDown(rl.KeyA)
-	moveRight := rl.IsKeyDown(rl.KeyD)
+	moveLeft := rl.IsKeyDown(rl.KeyA) || rl.IsGamepadButtonDown(1, rl.GamepadButtonLeftFaceLeft)
+	moveRight := rl.IsKeyDown(rl.KeyD) || rl.IsGamepadButtonDown(1, rl.GamepadButtonLeftFaceRight)
 	jump := rl.IsKeyDown(rl.KeySpace)
 	reset := rl.IsKeyPressed(rl.KeyR)
 
@@ -200,7 +198,6 @@ func (player *Player) UpdateAnimation() {
 	player.FramesCounter++
 
 	if player.FramesCounter >= (60 / player.FramesSpeed) {
-		log.Println("INSIDE")
 		player.FramesCounter = 0
 		player.CurrentFrame++
 
@@ -229,25 +226,23 @@ func (player *Player) HandleTileCollisions(layout []Tile) {
 	player.OnGround = false
 
 	for _, tile := range layout {
-		if rl.CheckCollisionRecs(tile.TextureRect, player.HitboxRect) {
-			overlapLeft := (player.HitboxRect.X + player.HitboxRect.Width) - tile.TextureRect.X
-			overlapRight := (tile.TextureRect.X + tile.TextureRect.Width) - player.HitboxRect.X
-			overlapTop := (player.HitboxRect.Y + player.HitboxRect.Height) - tile.TextureRect.Y
-			overlapBottom := (tile.TextureRect.Y + tile.TextureRect.Height) - player.HitboxRect.Y
+		if rl.CheckCollisionRecs(tile.HitboxRect, player.HitboxRect) {
+			overlapLeft := (player.HitboxRect.X + player.HitboxRect.Width) - tile.HitboxRect.X
+			overlapRight := (tile.HitboxRect.X + tile.HitboxRect.Width) - player.HitboxRect.X
+			overlapTop := (player.HitboxRect.Y + player.HitboxRect.Height) - tile.Position.Y
+			overlapBottom := (tile.Position.Y + tile.HitboxRect.Height) - player.HitboxRect.Y
 
 			minOverlap := overlapLeft
-			collisionSide := "RIGHT"
+			collisionSide := "LEFT"
 
 			if overlapRight < minOverlap {
 				minOverlap = overlapRight
 				collisionSide = "RIGHT"
 			}
-
 			if overlapTop < minOverlap {
 				minOverlap = overlapTop
 				collisionSide = "TOP"
 			}
-
 			if overlapBottom < minOverlap {
 				minOverlap = overlapBottom
 				collisionSide = "BOTTOM"
@@ -255,17 +250,17 @@ func (player *Player) HandleTileCollisions(layout []Tile) {
 
 			switch collisionSide {
 			case "TOP":
-				player.Position.Y = tile.TextureRect.Y - player.TextureRect.Height
+				player.Position.Y = tile.Position.Y - player.HitboxRect.Height
 				player.Velocity.Y = 0
 				player.OnGround = true
 			case "BOTTOM":
-				player.Position.Y = tile.TextureRect.Y + tile.TextureRect.Height
+				player.Position.Y = tile.Position.Y + tile.HitboxRect.Height
 				player.Velocity.Y = 0
 			case "LEFT":
-				player.Position.X = tile.TextureRect.X - player.TextureRect.Width
+				player.Position.X = tile.Position.X - player.HitboxRect.Width
 				player.Velocity.X = 0
 			case "RIGHT":
-				player.Position.X = tile.TextureRect.X + tile.TextureRect.Width
+				player.Position.X = tile.Position.X + tile.HitboxRect.Width
 				player.Velocity.X = 0
 			}
 

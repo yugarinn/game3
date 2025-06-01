@@ -14,8 +14,8 @@ const (
 )
 
 const (
-	GRAVITY                float32 = 1000
-	FALL_TERMINAL_VELOCITY float32 = 500
+	GRAVITY                float32 = 900
+	FALL_TERMINAL_VELOCITY float32 = 600
 )
 
 var gameStateName = map[GameState]string {
@@ -79,11 +79,19 @@ func (game *Game) LogState() {
 	moveRight := rl.IsKeyDown(rl.KeyD)
 	jump := rl.IsKeyPressed(rl.KeySpace)
 
+	rl.TraceLog(rl.LogInfo, "=======")
 	rl.TraceLog(rl.LogInfo, "frame: %d", game.AbsoluteFrame)
 	rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
+	rl.TraceLog(rl.LogInfo, "player.FramesCounter: %d", game.Player.FramesCounter)
 	rl.TraceLog(rl.LogInfo, "input.moveLeft: %v", moveLeft)
 	rl.TraceLog(rl.LogInfo, "input.moveRight: %v", moveRight)
 	rl.TraceLog(rl.LogInfo, "input.jump: %v", jump)
+	rl.TraceLog(rl.LogInfo, "input.buttonPressed: %v", rl.GetGamepadButtonPressed())
+	rl.TraceLog(rl.LogInfo, "input.isGamePad0Present: %v, %v", rl.IsGamepadAvailable(0), rl.GetGamepadName(0))
+	rl.TraceLog(rl.LogInfo, "input.isGamePad1Present: %v, %v", rl.IsGamepadAvailable(1), rl.GetGamepadName(1))
+	rl.TraceLog(rl.LogInfo, "input.isGamePad2Present: %v", rl.IsGamepadAvailable(2))
+	rl.TraceLog(rl.LogInfo, "input.isGamePad3Present: %v", rl.IsGamepadAvailable(3))
+	rl.TraceLog(rl.LogInfo, "input.isGamePad4Present: %v", rl.IsGamepadAvailable(4))
 }
 
 func (game *Game) IncreaseFrameCount() {

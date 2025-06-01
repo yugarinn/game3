@@ -26,6 +26,7 @@ var (
 )
 
 func main() {
+	slowMotionScale := 1
 	rl.InitWindow(VIRTUAL_WINDOW_WIDTH * 3, VIRTUAL_WINDOW_HEIGHT * 3, GAME_TITLE)
 	defer rl.CloseWindow()
 
@@ -55,8 +56,8 @@ func main() {
 			}
 
 			if instance.State == game.Playing {
-				instance.Tick(delta)
-				time.Sleep(time.Millisecond * 100)
+				instance.Tick(delta / float32(slowMotionScale))
+				time.Sleep(time.Millisecond * time.Duration(slowMotionScale))
 			}
 		}
 		rl.EndTextureMode()
