@@ -9,6 +9,7 @@ type GameState int
 const (
 	MainMenu GameState = iota
 	Playing
+	TimeStop
 	Paused
 	Editing
 )
@@ -21,6 +22,7 @@ const (
 var gameStateName = map[GameState]string {
 	MainMenu: "MainMenu",
 	Playing:  "Playing",
+	TimeStop: "TimeStop",
 	Paused:   "Paused",
 	Editing:  "Editing",
 }
@@ -92,6 +94,7 @@ func (game *Game) LogState() {
 	rl.TraceLog(rl.LogInfo, "input.isGamePad2Present: %v", rl.IsGamepadAvailable(2))
 	rl.TraceLog(rl.LogInfo, "input.isGamePad3Present: %v", rl.IsGamepadAvailable(3))
 	rl.TraceLog(rl.LogInfo, "input.isGamePad4Present: %v", rl.IsGamepadAvailable(4))
+	rl.TraceLog(rl.LogInfo, "game.State: %s", game.State)
 }
 
 func (game *Game) IncreaseFrameCount() {

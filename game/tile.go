@@ -11,6 +11,7 @@ type Tile struct {
 	HitboxRect  rl.Rectangle
 	Type        string
 	Variant     string
+	IsHighlighted bool
 	IsSolid     bool
 	Sprite      rl.Texture2D
 	TextureRect rl.Rectangle
@@ -30,10 +31,15 @@ func (tile Tile) Draw() {
 			tile.BaseColor,
 		)
 	}
+
+	if tile.IsHighlighted {
+		rl.DrawRectangleLinesEx(tile.HitboxRect, 1, rl.NewColor(230, 41, 55, 100))
+		rl.DrawPixel(int32(tile.Position.X), int32(tile.Position.Y), rl.Green)
+	}
 }
 
-func BasicTestLevelLayout() []Tile {
-	var layout []Tile
+func BasicTestLevelLayout() []*Tile {
+	var layout []*Tile
 	groundImage := rl.LoadImageFromMemory(".png", assets.GROUND_SPRITE_DATA, int32(len(assets.GROUND_SPRITE_DATA)))
 
 	// close floating platform
@@ -49,7 +55,7 @@ func BasicTestLevelLayout() []Tile {
 			BaseColor:   grassRegularGreen,
 		}
 
-		layout = append(layout, tile)
+		layout = append(layout, &tile)
     }
 
 	// middle floating platform
@@ -65,7 +71,7 @@ func BasicTestLevelLayout() []Tile {
 			BaseColor:   grassRegularGreen,
 		}
 
-		layout = append(layout, tile)
+		layout = append(layout, &tile)
     }
 
 	// far floating platform
@@ -81,23 +87,7 @@ func BasicTestLevelLayout() []Tile {
 			BaseColor:   grassRegularGreen,
 		}
 
-		layout = append(layout, tile)
-    }
-
-	// right wall
-	for y := 0; y < 21; y++ {
-		position := rl.NewVector2(312, float32(y * 8))
-
-		tile := Tile{
-			Position:    position,
-			Type:        "wall",
-			IsSolid:     true,
-			TextureRect: rl.NewRectangle(position.X, position.Y, 8, 8),
-			HitboxRect:  rl.NewRectangle(position.X, position.Y, 8, 8),
-			BaseColor:   rl.NewColor(0, 0, 0, 255),
-		}
-
-		layout = append(layout, tile)
+		layout = append(layout, &tile)
     }
 
 	// floor first row
@@ -115,7 +105,7 @@ func BasicTestLevelLayout() []Tile {
 			HasTexture:  true,
 		}
 
-		layout = append(layout, tile)
+		layout = append(layout, &tile)
     }
 
 	// floor second row
@@ -133,7 +123,7 @@ func BasicTestLevelLayout() []Tile {
 			HasTexture:  true,
 		}
 
-		layout = append(layout, tile)
+		layout = append(layout, &tile)
     }
 
 	return layout

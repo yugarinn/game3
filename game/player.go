@@ -9,16 +9,15 @@ import (
 const (
 	PLAYER_WIDTH        float32 = 24
 	PLAYER_HEIGHT       float32 = 24
-	PLAYER_MOVE_SPEED   float32 = 120
-	PLAYER_ACCELERATION float32 = 1000
-	PLAYER_DECELERATION float32 = 1100
+	PLAYER_MOVE_SPEED   float32 = 100
+	PLAYER_ACCELERATION float32 = 500
+	PLAYER_DECELERATION float32 = 700
 	PLAYER_JUMP_FORCE   float32 = -280
 )
 
 type Player struct {
 	Position          rl.Vector2
 	Velocity          rl.Vector2
-	OnGround          bool
 	MaxHealth         int8
 	Health            int8
 	Sprite            rl.Texture2D
@@ -29,10 +28,14 @@ type Player struct {
 	FramesSpeed       int32
 	FacingDirection   string
 	State             string
-	IsRunning         bool
 	LastStateChangeAt float64
 	AttackTime        float64
 	AttackDirection   string
+	OnGround          bool
+	IsRunning         bool
+	IsJumping         bool
+	IsFalling         bool
+	CanJump           bool
 }
 
 func InitPlayer() *Player {
@@ -41,7 +44,6 @@ func InitPlayer() *Player {
 	player := Player{
 		Position:        rl.NewVector2(10, 140),
 		Velocity:        rl.NewVector2(0, 0),
-		OnGround:        false,
 		MaxHealth:       20,
 		Health:          20,
 		Sprite:          rl.LoadTextureFromImage(playerImage),
@@ -52,6 +54,10 @@ func InitPlayer() *Player {
 		FacingDirection: "RIGHT",
 		State:           "IDLE",
 		AttackTime:      0.2,
+		OnGround:        false,
+		CanJump:         true,
+		IsJumping:       false,
+		IsFalling:       false,
 	}
 
 	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 9, 17)
@@ -81,8 +87,8 @@ func (player *Player) Draw() {
 func (player *Player) Tick(delta float32, room *Room) {
 	player.ProcessInput(delta)
 	player.CalculateVelocity(delta)
-	player.UpdateState()
 	player.UpdatePosition(delta, room)
+	player.UpdateState()
 	player.UpdateAnimation()
 }
 
@@ -90,7 +96,13 @@ func (player *Player) ProcessInput(delta float32) {
 	moveLeft := rl.IsKeyDown(rl.KeyA) || rl.IsGamepadButtonDown(1, rl.GamepadButtonLeftFaceLeft)
 	moveRight := rl.IsKeyDown(rl.KeyD) || rl.IsGamepadButtonDown(1, rl.GamepadButtonLeftFaceRight)
 	jump := rl.IsKeyDown(rl.KeySpace)
+	jumpReleased := rl.IsKeyReleased(rl.KeySpace)
 	reset := rl.IsKeyPressed(rl.KeyR)
+
+	// prevents spamming jumps
+	if jumpReleased {
+		player.CanJump = true
+	}
 
 	if reset {
 		player.Position = rl.NewVector2(10, 10)
@@ -98,10 +110,6 @@ func (player *Player) ProcessInput(delta float32) {
 	}
 
 	if moveLeft && !moveRight {
-		if player.Velocity.X > 0 {
-			player.Velocity.X = 5
-		}
-
 		player.FacingDirection = "LEFT"
 
 		if player.Velocity.X > -PLAYER_MOVE_SPEED {
@@ -114,10 +122,6 @@ func (player *Player) ProcessInput(delta float32) {
 	}
 
 	if moveRight && !moveLeft {
-		if player.Velocity.X < 0 {
-			player.Velocity.X = -5
-		}
-
 		player.FacingDirection = "RIGHT"
 
 		if player.Velocity.X < PLAYER_MOVE_SPEED {
@@ -145,9 +149,10 @@ func (player *Player) ProcessInput(delta float32) {
 		}
 	}
 
-	if jump && player.OnGround {
+	if jump && player.OnGround && player.CanJump {
 		player.Velocity.Y = PLAYER_JUMP_FORCE
 		player.OnGround = false
+		player.CanJump = false
 	}
 }
 
@@ -171,6 +176,8 @@ func (player *Player) UpdatePosition(delta float32, room *Room) {
 
 func (player *Player) UpdateState() {
 	var isRunning bool
+	var isJumping bool
+	var isFalling bool
 
 	if player.Velocity.X != 0 {
 		isRunning = true
@@ -182,11 +189,17 @@ func (player *Player) UpdateState() {
 		player.FramesSpeed = 2
 	}
 
-	// This immediately resets the animaton frame
-	if isRunning != player.IsRunning {
-		player.CurrentFrame = 0
-		player.IsRunning = isRunning
+	if player.Velocity.Y < 0 {
+		isJumping = true
 	}
+
+	if player.Velocity.Y > 0 {
+		isFalling = true
+	}
+
+	player.IsRunning = isRunning
+	player.IsJumping = isJumping
+	player.IsFalling = isFalling
 }
 
 func (player *Player) UpdateHitbox() {
@@ -217,12 +230,26 @@ func (player *Player) UpdateAnimation() {
 			player.TextureRect.Y = 31
 		}
 
+		if player.IsJumping {
+			player.TextureRect.X = 16
+			player.TextureRect.Y = 80
+
+			return
+		}
+
+		if player.IsFalling {
+			player.TextureRect.X = 48
+			player.TextureRect.Y = 80
+
+			return
+		}
+
 		offset := float32(player.CurrentFrame) * 16
 		player.TextureRect.X = offset
 	}
 }
 
-func (player *Player) HandleTileCollisions(layout []Tile) {
+func (player *Player) HandleTileCollisions(layout []*Tile) {
 	player.OnGround = false
 
 	for _, tile := range layout {
@@ -239,13 +266,21 @@ func (player *Player) HandleTileCollisions(layout []Tile) {
 				minOverlap = overlapRight
 				collisionSide = "RIGHT"
 			}
+
 			if overlapTop < minOverlap {
 				minOverlap = overlapTop
 				collisionSide = "TOP"
 			}
+
 			if overlapBottom < minOverlap {
 				minOverlap = overlapBottom
 				collisionSide = "BOTTOM"
+			}
+
+			// This is my poor man's solution to ghost colliding
+			// https://briansemrau.github.io/dealing-with-ghost-collisions/
+			if (collisionSide == "LEFT" || collisionSide == "RIGHT") && overlapBottom > 0 && overlapBottom > overlapTop {
+				continue
 			}
 
 			switch collisionSide {
@@ -263,8 +298,6 @@ func (player *Player) HandleTileCollisions(layout []Tile) {
 				player.Position.X = tile.Position.X + tile.HitboxRect.Width
 				player.Velocity.X = 0
 			}
-
-			player.UpdateHitbox()
 		}
 	}
 }

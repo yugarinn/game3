@@ -7,7 +7,7 @@ import (
 type Room struct {
 	ID     string
 	Name   string
-	Layout []Tile
+	Layout []*Tile
 	Props  []Prop
 }
 

@@ -51,6 +51,14 @@ func main() {
 		{
 			rl.ClearBackground(rl.Black)
 
+			if rl.IsKeyPressed(rl.KeyEscape) && instance.State == game.Playing {
+				instance.State = game.Paused
+			}
+
+			if rl.IsKeyPressed(rl.KeyEscape) && instance.State == game.Paused {
+				instance.State = game.Playing
+			}
+
 			if instance.State == game.MainMenu {
 				ui.ShowMainMenu(instance)
 			}
