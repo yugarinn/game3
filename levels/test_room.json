@@ -1,0 +1,847 @@
+{
+  "ID": "test_room",
+  "Name": "Test Room",
+  "Layout": [
+    {
+      "Position": [
+        0,
+        8
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        16
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        24
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        32
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        40
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        48
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        56
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        64
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        72
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        80
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        88
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        96
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        104
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        112
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        120
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        128
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        136
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        144
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        152
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        0,
+        160
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        8,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        16,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        24,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        32,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        40,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        48,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        56,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        64,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        72,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        80,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        88,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        96,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        104,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        112,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        120,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        128,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        136,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        144,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        152,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        160,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        168,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        176,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        184,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        192,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        200,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        208,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        216,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        224,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        232,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        264,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        272,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        280,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        288,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        296,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        304,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        256,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        248,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        240,
+        168
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        160
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        152
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        144
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        136
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        128
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        120
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        112
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        104
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        96
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        88
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        80
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        72
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        64
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        56
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        48
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        40
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        32
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        24
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        16
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        312,
+        8
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        304,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        296,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        288,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        280,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        272,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        264,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        256,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        248,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        240,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        232,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        224,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        216,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        208,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        200,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        192,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        184,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        176,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        168,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        160,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        152,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        144,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        136,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        128,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        120,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        112,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        104,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        96,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        88,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        80,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        72,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        64,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        56,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        48,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        40,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        32,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        24,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        16,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        8,
+        0
+      ],
+      "Type": ""
+    },
+    {
+      "Position": [
+        8,
+        8
+      ],
+      "Type": "type"
+    },
+    {
+      "Position": [
+        8,
+        160
+      ],
+      "Type": "type"
+    },
+    {
+      "Position": [
+        304,
+        160
+      ],
+      "Type": "type"
+    },
+    {
+      "Position": [
+        304,
+        8
+      ],
+      "Type": "type"
+    }
+  ],
+  "Props": null
+}

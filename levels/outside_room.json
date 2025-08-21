@@ -1,0 +1,141 @@
+{
+  "ID": "outside_room",
+  "Name": "Outside Room",
+  "Layout": [
+    {
+      "Position": [
+        16,
+        0
+      ],
+      "Type": "floor"
+    },
+    {
+      "Position": [
+        144,
+        80
+      ],
+      "Type": "type"
+    },
+    {
+      "Position": [
+        184,
+        80
+      ],
+      "Type": "type"
+    }
+  ],
+  "Props": [
+    {
+      "Type": "boulder",
+      "Pickable": false,
+      "Walkable": false,
+      "Pushable": false,
+      "Sprite": {
+        "ID": 0,
+        "Width": 0,
+        "Height": 0,
+        "Mipmaps": 0,
+        "Format": 0
+      },
+      "TextureRect": {
+        "X": 0,
+        "Y": 0,
+        "Width": 0,
+        "Height": 0
+      },
+      "Position": [
+        2,
+        2
+      ],
+      "IsAnimated": false,
+      "CurrentFrame": 0,
+      "AnimationFramesCounter": 0,
+      "FramesCounter": 0,
+      "FramesSpeed": 0
+    },
+    {
+      "Type": "bones",
+      "Pickable": false,
+      "Walkable": true,
+      "Pushable": false,
+      "Sprite": {
+        "ID": 0,
+        "Width": 0,
+        "Height": 0,
+        "Mipmaps": 0,
+        "Format": 0
+      },
+      "TextureRect": {
+        "X": 0,
+        "Y": 0,
+        "Width": 0,
+        "Height": 0
+      },
+      "Position": [
+        8,
+        2
+      ],
+      "IsAnimated": false,
+      "CurrentFrame": 0,
+      "AnimationFramesCounter": 0,
+      "FramesCounter": 0,
+      "FramesSpeed": 0
+    },
+    {
+      "Type": "torch",
+      "Pickable": false,
+      "Walkable": true,
+      "Pushable": false,
+      "Sprite": {
+        "ID": 0,
+        "Width": 0,
+        "Height": 0,
+        "Mipmaps": 0,
+        "Format": 0
+      },
+      "TextureRect": {
+        "X": 0,
+        "Y": 0,
+        "Width": 0,
+        "Height": 0
+      },
+      "Position": [
+        11,
+        0
+      ],
+      "IsAnimated": true,
+      "CurrentFrame": 0,
+      "AnimationFramesCounter": 0,
+      "FramesCounter": 0,
+      "FramesSpeed": 0
+    },
+    {
+      "Type": "torch",
+      "Pickable": false,
+      "Walkable": true,
+      "Pushable": false,
+      "Sprite": {
+        "ID": 0,
+        "Width": 0,
+        "Height": 0,
+        "Mipmaps": 0,
+        "Format": 0
+      },
+      "TextureRect": {
+        "X": 0,
+        "Y": 0,
+        "Width": 0,
+        "Height": 0
+      },
+      "Position": [
+        13,
+        0
+      ],
+      "IsAnimated": true,
+      "CurrentFrame": 0,
+      "AnimationFramesCounter": 0,
+      "FramesCounter": 0,
+      "FramesSpeed": 0
+    }
+  ]
+}

@@ -106,6 +106,7 @@ func (player *Player) ProcessInput(delta float32) {
 
 	if reset {
 		player.Position = rl.NewVector2(10, 10)
+		player.Velocity.Y = 0
 		return
 	}
 

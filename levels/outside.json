@@ -1,0 +1,24 @@
+{
+  "id": "outside_room",
+  "name": "Outside Room",
+  "props": [
+    { "type": "boulder", "walkable": false, "position": [2, 2] },
+    { "type": "bones", "walkable": true, "position": [8, 2] },
+    { "type": "torch", "isanimated": true, "walkable": true, "position": [11, 0] },
+    { "type": "torch", "isanimated": true, "walkable": true, "position": [13, 0] }
+  ],
+  "npcs": [
+    { "kind": "BAT", "position": [7, 7], "ishostile": true },
+    { "kind": "BAT", "position": [8, 7], "ishostile": true },
+    { "kind": "BAT", "position": [9, 7], "ishostile": true },
+    { "kind": "RAT", "position": [3, 7], "ishostile": true },
+    { "kind": "SLIME", "position": [7, 10], "ishostile": true },
+    { "kind": "SLIME", "position": [10, 5], "ishostile": true }
+  ],
+  "exits": [
+    { "toroomid": "act1_cell_corridor", "position": [12, 0], "toposition": [12, 13] }
+  ],
+  "layout": [
+      {"position": [16, 0], "type": "floor"}
+  ]
+}
