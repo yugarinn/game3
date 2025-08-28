@@ -84,10 +84,10 @@ func (player *Player) Draw() {
 	// rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
 }
 
-func (player *Player) Tick(delta float32, room *Room) {
+func (player *Player) Tick(delta float32, level *Level) {
 	player.ProcessInput(delta)
 	player.CalculateVelocity(delta)
-	player.UpdatePosition(delta, room)
+	player.UpdatePosition(delta, level)
 	player.UpdateState()
 	player.UpdateAnimation()
 }
@@ -167,12 +167,12 @@ func (player *Player) CalculateVelocity(delta float32) {
 	}
 }
 
-func (player *Player) UpdatePosition(delta float32, room *Room) {
+func (player *Player) UpdatePosition(delta float32, level *Level) {
 	player.Position.X += player.Velocity.X * delta
 	player.Position.Y += player.Velocity.Y * delta
 
 	player.UpdateHitbox()
-	player.HandleTileCollisions(room.Layout)
+	player.HandleTileCollisions(level.GetGround().Layout)
 }
 
 func (player *Player) UpdateState() {

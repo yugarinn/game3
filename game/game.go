@@ -1,6 +1,12 @@
 package game
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"game3/assets"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -37,26 +43,44 @@ type Game struct {
 	LastActionAbsoluteFrame uint32
 	State                   GameState
 	Player                  *Player
-	CurrentRoom             *Room
+	World                   *World
+	CurrentLevel            *Level
+	Textures                map[string]rl.Texture2D
+}
+
+type World struct {
+	ID     string   `json:"iid"`
+	Levels []*Level `json:"levels"`
 }
 
 func InitGame() *Game {
-	room, _ := LoadRoom("id")
-	pc := InitPlayer()
+	world, loadWorldErr := LoadWorld()
+	if loadWorldErr != nil {
+		panic(fmt.Sprintf("error loading world: %s", loadWorldErr.Error()))
+	}
 
+	groundImage := rl.LoadImageFromMemory(".png", assets.GROUND_SPRITE_DATA, int32(len(assets.GROUND_SPRITE_DATA)))
+
+	var textures = map[string]rl.Texture2D{
+		"ground": rl.LoadTextureFromImage(groundImage),
+	}
+
+	pc := InitPlayer()
 	game := Game{
 		Player: pc,
-		State:  Playing,
-		CurrentRoom: room,
+		State: Playing,
+		World: world,
+		Textures: textures,
 	}
+
+	game.LoadLevel("Level_0")
 
 	return &game
 }
 
 func (game *Game) SetState(state GameState) {
 	if state == Playing {
-		room, _ := LoadRoom("id")
-		game.CurrentRoom = room
+		game.LoadLevel("Level_0")
 	}
 
 	game.State = state
@@ -67,13 +91,35 @@ func (game *Game) Tick(delta float32) {
 		return
 	}
 
-	game.Player.Tick(delta, game.CurrentRoom)
+	game.Player.Tick(delta, game.CurrentLevel)
 
-	game.CurrentRoom.Draw()
+	game.CurrentLevel.Draw()
 	game.Player.Draw()
 
 	game.IncreaseFrameCount()
 	game.LogState()
+}
+
+func LoadWorld() (*World, error) {
+	worldFile, jsonErr := os.ReadFile("levels/game3.ldtk")
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
+
+	var world World
+	json.Unmarshal(worldFile, &world)
+
+	return &world, nil
+}
+
+func (g *Game) LoadLevel(levelID string) {
+	for _, level := range g.World.Levels {
+		if level.Name == levelID {
+			level.GetGround().LoadLayout()
+			g.CurrentLevel = level
+			break
+		}
+	}
 }
 
 func (game *Game) LogState() {

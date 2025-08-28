@@ -6,6 +6,6 @@ import _ "embed"
 //go:embed entities/player.png
 var PLAYER_SPRITE_DATA []byte
 
-/** WORLD SPRITES */
-//go:embed world.png
+/** GROUND SPRITES */
+//go:embed ground.png
 var GROUND_SPRITE_DATA []byte
