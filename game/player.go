@@ -172,7 +172,7 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 	player.Position.Y += player.Velocity.Y * delta
 
 	player.UpdateHitbox()
-	player.HandleTileCollisions(level.GetGround().Layout)
+	player.HandleTileCollisions(level.GetGroundLayer().Layout)
 }
 
 func (player *Player) UpdateState() {

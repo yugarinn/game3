@@ -1,15 +1,13 @@
 package game
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Level struct {
-	ID     string `json:"iid"`
-	Name   string `json:"identifier"`
-	Layers []*LevelLayer
+	ID     string        `json:"iid"`
+	Name   string        `json:"identifier"`
+	Layers []*LevelLayer `json:"layerInstances"`
 	Props  []Prop
 }
 
@@ -21,29 +19,28 @@ type LevelLayer struct {
 	Layout      []*Tile
 }
 
+func (l *Level) Load() {
+	l.GetGroundLayer().LoadLayout()
+}
+
 func (l *Level) Draw() {
 	l.DrawGround()
 }
 
 func (l *Level) DrawGround() {
-	for _, tile := range l.GetGround().Layout {
-		fmt.Println("TILE")
-		fmt.Println(tile)
+	for _, tile := range l.GetGroundLayer().Layout {
 		rl.DrawRectangle(int32(tile.Position.X), int32(tile.Position.Y), 8, 8, rl.Pink)
 	}
 }
 
-func (l *Level) GetGround() *LevelLayer {
-	var groundLayer LevelLayer
-
+func (l *Level) GetGroundLayer() *LevelLayer {
 	for _, layer := range l.Layers {
 		if layer.Name == "Ground" {
-			groundLayer = *layer
-			break
+			return layer
 		}
 	}
 
-	return &groundLayer
+	return nil
 }
 
 func (ll *LevelLayer) LoadLayout() {

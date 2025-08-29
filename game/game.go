@@ -60,7 +60,6 @@ func InitGame() *Game {
 	}
 
 	groundImage := rl.LoadImageFromMemory(".png", assets.GROUND_SPRITE_DATA, int32(len(assets.GROUND_SPRITE_DATA)))
-
 	var textures = map[string]rl.Texture2D{
 		"ground": rl.LoadTextureFromImage(groundImage),
 	}
@@ -86,18 +85,18 @@ func (game *Game) SetState(state GameState) {
 	game.State = state
 }
 
-func (game *Game) Tick(delta float32) {
-	if game.State == MainMenu {
+func (g *Game) Tick(delta float32) {
+	if g.State == MainMenu {
 		return
 	}
 
-	game.Player.Tick(delta, game.CurrentLevel)
+	g.Player.Tick(delta, g.CurrentLevel)
 
-	game.CurrentLevel.Draw()
-	game.Player.Draw()
+	g.CurrentLevel.Draw()
+	g.Player.Draw()
 
-	game.IncreaseFrameCount()
-	game.LogState()
+	g.IncreaseFrameCount()
+	g.LogState()
 }
 
 func LoadWorld() (*World, error) {
@@ -113,13 +112,16 @@ func LoadWorld() (*World, error) {
 }
 
 func (g *Game) LoadLevel(levelID string) {
+	var currentLevel *Level
 	for _, level := range g.World.Levels {
 		if level.Name == levelID {
-			level.GetGround().LoadLayout()
-			g.CurrentLevel = level
+			currentLevel = level
 			break
 		}
 	}
+
+	currentLevel.Load()
+	g.CurrentLevel = currentLevel
 }
 
 func (game *Game) LogState() {
