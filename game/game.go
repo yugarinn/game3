@@ -45,7 +45,8 @@ type Game struct {
 	Player                  *Player
 	World                   *World
 	CurrentLevel            *Level
-	Textures                map[string]rl.Texture2D
+	Renderer                *Renderer
+
 }
 
 type World struct {
@@ -64,12 +65,17 @@ func InitGame() *Game {
 		"ground": rl.LoadTextureFromImage(groundImage),
 	}
 
+	renderer := &Renderer{
+		Textures: textures,
+	}
+
 	pc := InitPlayer()
+
 	game := Game{
 		Player: pc,
 		State: Playing,
 		World: world,
-		Textures: textures,
+		Renderer: renderer,
 	}
 
 	game.LoadLevel("Level_0")
@@ -92,9 +98,7 @@ func (g *Game) Tick(delta float32) {
 
 	g.Player.Tick(delta, g.CurrentLevel)
 
-	g.CurrentLevel.Draw()
-	g.Player.Draw()
-
+	g.Render()
 	g.IncreaseFrameCount()
 	g.LogState()
 }
@@ -122,6 +126,11 @@ func (g *Game) LoadLevel(levelID string) {
 
 	currentLevel.Load()
 	g.CurrentLevel = currentLevel
+}
+
+func (g *Game) Render() {
+	g.CurrentLevel.Draw(g.Renderer)
+	g.Player.Draw()
 }
 
 func (game *Game) LogState() {

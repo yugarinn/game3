@@ -75,11 +75,14 @@ func (player *Player) Draw() {
 
 	if player.FacingDirection == "LEFT" {
 		player.TextureRect.Width = -16
-		// weird hack, the recommended way to flip a texture in raylib (negating the width) offsets it...
+
+		// weird hack, the recommended way to flip a texture in raylib, negating the width, offsets it...
 		spriteVector = rl.NewVector2(player.Position.X - 6, player.Position.Y)
 	}
 
 	rl.DrawTextureRec(player.Sprite, player.TextureRect, spriteVector, rl.White)
+
+	// TODO: if g.InDebugMode
 	// rl.DrawRectangleLinesEx(player.HitboxRect, 1, rl.NewColor(230, 41, 55, 100))
 	// rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
 }

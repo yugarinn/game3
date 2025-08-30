@@ -12,9 +12,9 @@ type Level struct {
 }
 
 type LevelLayer struct {
-	ID          string  `json:"iid"`
-	Name        string  `json:"__identifier"`
-	TilesetPath []*Tile `json:"__tilesetRelPath"`
+	ID          string      `json:"iid"`
+	Name        string      `json:"__identifier"`
+	TilesetPath []*Tile     `json:"__tilesetRelPath"`
 	RawLayout   []*LDtkTile `json:"gridTiles"`
 	Layout      []*Tile
 }
@@ -23,13 +23,15 @@ func (l *Level) Load() {
 	l.GetGroundLayer().LoadLayout()
 }
 
-func (l *Level) Draw() {
-	l.DrawGround()
+func (l *Level) Draw(r *Renderer) {
+	l.DrawGround(r)
 }
 
-func (l *Level) DrawGround() {
+func (l *Level) DrawGround(r *Renderer) {
 	for _, tile := range l.GetGroundLayer().Layout {
-		rl.DrawRectangle(int32(tile.Position.X), int32(tile.Position.Y), 8, 8, rl.Pink)
+		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
+		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
+		r.DrawSprite("ground", rec, tile.Position)
 	}
 }
 
