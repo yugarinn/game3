@@ -24,7 +24,7 @@ func NewTileFromLDtk(ldtkTile *LDtkTile) *Tile {
 	positionX := float32(ldtkTile.Px[0])
 	positionY := float32(ldtkTile.Px[1])
 
-	// This assumes that all tilemaps are have a width of 136px
+	// This assumes that all tilemaps have a width of 136px
 	// there are 17 8x8 tiles in a tileset of width 136
 
 	// But... actually, LDtk already stores the position

@@ -5,10 +5,11 @@ import (
 )
 
 type Level struct {
-	ID     string        `json:"iid"`
-	Name   string        `json:"identifier"`
-	Layers []*LevelLayer `json:"layerInstances"`
-	Props  []Prop
+	ID         string            `json:"iid"`
+	Name       string            `json:"identifier"`
+	Neighbours []*LevelNeighbour `json:"__neighbours"`
+	Layers     []*LevelLayer     `json:"layerInstances"`
+	Props      []Prop
 }
 
 type LevelLayer struct {
@@ -19,12 +20,27 @@ type LevelLayer struct {
 	Layout      []*Tile
 }
 
+type LevelNeighbour struct {
+	LevelID   string `json:"levelIid"`
+	Direction string `json:"dir"`
+}
+
 func (l *Level) Load() {
+	l.GetBackgroundLayer().LoadLayout()
 	l.GetGroundLayer().LoadLayout()
 }
 
 func (l *Level) Draw(r *Renderer) {
+	l.DrawBackground(r)
 	l.DrawGround(r)
+}
+
+func (l *Level) DrawBackground(r *Renderer) {
+	for _, tile := range l.GetBackgroundLayer().Layout {
+		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
+		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
+		r.DrawSprite("ground", rec, tile.Position)
+	}
 }
 
 func (l *Level) DrawGround(r *Renderer) {
@@ -33,6 +49,16 @@ func (l *Level) DrawGround(r *Renderer) {
 		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
 		r.DrawSprite("ground", rec, tile.Position)
 	}
+}
+
+func (l *Level) GetBackgroundLayer() *LevelLayer {
+	for _, layer := range l.Layers {
+		if layer.Name == "Background" {
+			return layer
+		}
+	}
+
+	return nil
 }
 
 func (l *Level) GetGroundLayer() *LevelLayer {

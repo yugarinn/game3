@@ -12,7 +12,7 @@ const (
 	PLAYER_MOVE_SPEED   float32 = 100
 	PLAYER_ACCELERATION float32 = 500
 	PLAYER_DECELERATION float32 = 700
-	PLAYER_JUMP_FORCE   float32 = -280
+	PLAYER_JUMP_FORCE   float32 = -400 // 280
 )
 
 type Player struct {
@@ -36,6 +36,10 @@ type Player struct {
 	IsJumping         bool
 	IsFalling         bool
 	CanJump           bool
+	WentNorth         bool
+	WentWest          bool
+	WentSouth         bool
+	WentEast          bool
 }
 
 func InitPlayer() *Player {
@@ -58,6 +62,10 @@ func InitPlayer() *Player {
 		CanJump:         true,
 		IsJumping:       false,
 		IsFalling:       false,
+		WentNorth:       false,
+	    WentWest:        false,
+	    WentSouth:       false,
+	    WentEast:        false,
 	}
 
 	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 9, 17)
@@ -100,17 +108,10 @@ func (player *Player) ProcessInput(delta float32) {
 	moveRight := rl.IsKeyDown(rl.KeyD) || rl.IsGamepadButtonDown(1, rl.GamepadButtonLeftFaceRight)
 	jump := rl.IsKeyDown(rl.KeySpace)
 	jumpReleased := rl.IsKeyReleased(rl.KeySpace)
-	reset := rl.IsKeyPressed(rl.KeyR)
 
 	// prevents spamming jumps
 	if jumpReleased {
 		player.CanJump = true
-	}
-
-	if reset {
-		player.Position = rl.NewVector2(10, 10)
-		player.Velocity.Y = 0
-		return
 	}
 
 	if moveLeft && !moveRight {
@@ -176,6 +177,26 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 
 	player.UpdateHitbox()
 	player.HandleTileCollisions(level.GetGroundLayer().Layout)
+
+	if player.Position.Y < 0 {
+		player.Position.Y = 180
+		player.WentNorth = true
+	}
+
+	if player.Position.X > 320 {
+		player.Position.X = 0
+		player.WentEast = true
+	}
+
+	if player.Position.Y > 180 {
+		player.Position.Y = 0
+		player.WentSouth = true
+	}
+
+	if player.Position.X < 0 {
+		player.Position.X = 320
+		player.WentWest = true
+	}
 }
 
 func (player *Player) UpdateState() {

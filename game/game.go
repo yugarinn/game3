@@ -96,6 +96,59 @@ func (g *Game) Tick(delta float32) {
 		return
 	}
 
+	// TODO: remove duplication
+	if g.Player.WentNorth {
+		for _, neighbour := range g.CurrentLevel.Neighbours {
+			if neighbour.Direction == "n" {
+				levelName := g.FindLevelNameFromID(neighbour.LevelID)
+
+				g.LoadLevel(levelName)
+		        g.Player.WentNorth = false
+
+				break
+			}
+		}
+	}
+
+	if g.Player.WentEast {
+		for _, neighbour := range g.CurrentLevel.Neighbours {
+			if neighbour.Direction == "e" {
+				levelName := g.FindLevelNameFromID(neighbour.LevelID)
+
+				g.LoadLevel(levelName)
+		        g.Player.WentEast = false
+
+				break
+			}
+		}
+	}
+
+	if g.Player.WentSouth {
+		for _, neighbour := range g.CurrentLevel.Neighbours {
+			if neighbour.Direction == "s" {
+				levelName := g.FindLevelNameFromID(neighbour.LevelID)
+
+				g.LoadLevel(levelName)
+		        g.Player.WentSouth = false
+
+				break
+			}
+		}
+	}
+
+	if g.Player.WentWest {
+		for _, neighbour := range g.CurrentLevel.Neighbours {
+			if neighbour.Direction == "w" {
+				levelName := g.FindLevelNameFromID(neighbour.LevelID)
+
+				g.LoadLevel(levelName)
+		        g.Player.WentWest = false
+
+				break
+			}
+		}
+	}
+
 	g.Player.Tick(delta, g.CurrentLevel)
 
 	g.Render()
@@ -115,10 +168,10 @@ func LoadWorld() (*World, error) {
 	return &world, nil
 }
 
-func (g *Game) LoadLevel(levelID string) {
+func (g *Game) LoadLevel(levelName string) {
 	var currentLevel *Level
 	for _, level := range g.World.Levels {
-		if level.Name == levelID {
+		if level.Name == levelName {
 			currentLevel = level
 			break
 		}
@@ -126,6 +179,16 @@ func (g *Game) LoadLevel(levelID string) {
 
 	currentLevel.Load()
 	g.CurrentLevel = currentLevel
+}
+
+func (g *Game) FindLevelNameFromID(levelID string) string {
+	for _, level := range g.World.Levels {
+		if level.ID  == levelID {
+			return level.Name
+		}
+	}
+
+	return ""
 }
 
 func (g *Game) Render() {
@@ -142,6 +205,8 @@ func (game *Game) LogState() {
 	rl.TraceLog(rl.LogInfo, "frame: %d", game.AbsoluteFrame)
 	rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
 	rl.TraceLog(rl.LogInfo, "player.FramesCounter: %d", game.Player.FramesCounter)
+	rl.TraceLog(rl.LogInfo, "player.Position.X: %f", game.Player.Position.X)
+	rl.TraceLog(rl.LogInfo, "player.Position.Y: %f", game.Player.Position.Y)
 	rl.TraceLog(rl.LogInfo, "input.moveLeft: %v", moveLeft)
 	rl.TraceLog(rl.LogInfo, "input.moveRight: %v", moveRight)
 	rl.TraceLog(rl.LogInfo, "input.jump: %v", jump)
