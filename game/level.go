@@ -26,7 +26,6 @@ type LevelNeighbour struct {
 }
 
 func (l *Level) Load() {
-	l.GetBackgroundLayer().LoadLayout()
 	l.GetGroundLayer().LoadLayout()
 }
 

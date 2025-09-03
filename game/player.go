@@ -12,7 +12,7 @@ const (
 	PLAYER_MOVE_SPEED   float32 = 100
 	PLAYER_ACCELERATION float32 = 500
 	PLAYER_DECELERATION float32 = 700
-	PLAYER_JUMP_FORCE   float32 = -400 // 280
+	PLAYER_JUMP_FORCE   float32 = -280
 )
 
 type Player struct {
@@ -178,22 +178,22 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 	player.UpdateHitbox()
 	player.HandleTileCollisions(level.GetGroundLayer().Layout)
 
-	if player.Position.Y < 0 {
+	if player.Position.Y < -5 {
 		player.Position.Y = 180
 		player.WentNorth = true
 	}
 
-	if player.Position.X > 320 {
+	if player.Position.X > 325 {
 		player.Position.X = 0
 		player.WentEast = true
 	}
 
-	if player.Position.Y > 180 {
+	if player.Position.Y > 185 {
 		player.Position.Y = 0
 		player.WentSouth = true
 	}
 
-	if player.Position.X < 0 {
+	if player.Position.X < -5 {
 		player.Position.X = 320
 		player.WentWest = true
 	}
