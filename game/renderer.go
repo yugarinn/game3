@@ -22,3 +22,7 @@ func (r *Renderer) DrawBackground(textureID string) {
 	texture := r.Textures[textureID]
 	rl.DrawTexture(texture, 0, 0, rl.White)
 }
+
+func (r *Renderer) DrawParticle(particle *Particle) {
+	rl.DrawPixel(int32(particle.Position.X), int32(particle.Position.Y), rl.White)
+}

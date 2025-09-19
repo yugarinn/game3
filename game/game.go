@@ -104,58 +104,7 @@ func (g *Game) Tick(delta float32) {
 		return
 	}
 
-	// TODO: remove duplication
-	if g.Player.WentNorth {
-		for _, neighbour := range g.CurrentLevel.Neighbours {
-			if neighbour.Direction == "n" {
-				levelName := g.FindLevelNameFromID(neighbour.LevelID)
-
-				g.LoadLevel(levelName)
-		        g.Player.WentNorth = false
-
-				break
-			}
-		}
-	}
-
-	if g.Player.WentEast {
-		for _, neighbour := range g.CurrentLevel.Neighbours {
-			if neighbour.Direction == "e" {
-				levelName := g.FindLevelNameFromID(neighbour.LevelID)
-
-				g.LoadLevel(levelName)
-		        g.Player.WentEast = false
-
-				break
-			}
-		}
-	}
-
-	if g.Player.WentSouth {
-		for _, neighbour := range g.CurrentLevel.Neighbours {
-			if neighbour.Direction == "s" {
-				levelName := g.FindLevelNameFromID(neighbour.LevelID)
-
-				g.LoadLevel(levelName)
-		        g.Player.WentSouth = false
-
-				break
-			}
-		}
-	}
-
-	if g.Player.WentWest {
-		for _, neighbour := range g.CurrentLevel.Neighbours {
-			if neighbour.Direction == "w" {
-				levelName := g.FindLevelNameFromID(neighbour.LevelID)
-
-				g.LoadLevel(levelName)
-		        g.Player.WentWest = false
-
-				break
-			}
-		}
-	}
+	g.CheckRoomChange()
 
 	g.Player.Tick(delta, g.CurrentLevel)
 
@@ -205,6 +154,42 @@ func (g *Game) FindLevelNameFromID(levelID string) string {
 func (g *Game) Render() {
 	g.CurrentLevel.Draw(g.Renderer)
 	g.Player.Draw()
+}
+
+func (g *Game) CheckRoomChange() {
+	var direction string
+
+	if g.Player.WentNorth {
+		direction = "n"
+	}
+
+	if g.Player.WentEast {
+		direction = "e"
+	}
+
+	if g.Player.WentSouth {
+		direction = "s"
+	}
+
+	if g.Player.WentWest {
+		direction = "w"
+	}
+
+	for _, neighbour := range g.CurrentLevel.Neighbours {
+		if neighbour.Direction == direction {
+			levelName := g.FindLevelNameFromID(neighbour.LevelID)
+
+			g.CurrentLevel.Unload()
+			g.LoadLevel(levelName)
+
+			g.Player.WentNorth = false
+			g.Player.WentEast = false
+			g.Player.WentSouth = false
+			g.Player.WentWest = false
+
+			break
+		}
+	}
 }
 
 func (game *Game) LogState() {
