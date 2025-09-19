@@ -183,7 +183,7 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 		player.WentNorth = true
 	}
 
-	if player.Position.X > 325 {
+	if player.Position.X > 320 {
 		player.Position.X = 0
 		player.WentEast = true
 	}
@@ -193,7 +193,7 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 		player.WentSouth = true
 	}
 
-	if player.Position.X < -5 {
+	if player.Position.X < 0 {
 		player.Position.X = 320
 		player.WentWest = true
 	}

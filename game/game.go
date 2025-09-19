@@ -23,6 +23,7 @@ const (
 const (
 	GRAVITY                float32 = 900
 	FALL_TERMINAL_VELOCITY float32 = 600
+	DEBUG                     bool = false
 )
 
 var gameStateName = map[GameState]string {
@@ -60,9 +61,14 @@ func InitGame() *Game {
 		panic(fmt.Sprintf("error loading world: %s", loadWorldErr.Error()))
 	}
 
-	groundImage := rl.LoadImageFromMemory(".png", assets.GROUND_SPRITE_DATA, int32(len(assets.GROUND_SPRITE_DATA)))
+	// TODO: the keys from the map can probably be infered from the assets file data
+	tilesetGroundImage := rl.LoadImageFromMemory(".png", assets.GROUND_SPRITE_DATA, int32(len(assets.GROUND_SPRITE_DATA)))
+	backgroundDaylightSky := rl.LoadImageFromMemory(".png", assets.BACKRGOUND_DAYLIGHT_SKY, int32(len(assets.BACKRGOUND_DAYLIGHT_SKY)))
+	backgroundUnderground := rl.LoadImageFromMemory(".png", assets.BACKRGOUND_UNDERGROUND, int32(len(assets.BACKRGOUND_UNDERGROUND)))
 	var textures = map[string]rl.Texture2D{
-		"ground": rl.LoadTextureFromImage(groundImage),
+		"tileset_ground": rl.LoadTextureFromImage(tilesetGroundImage),
+		"background-daylight-sky": rl.LoadTextureFromImage(backgroundDaylightSky),
+		"background-underground": rl.LoadTextureFromImage(backgroundUnderground),
 	}
 
 	renderer := &Renderer{
@@ -78,7 +84,7 @@ func InitGame() *Game {
 		Renderer: renderer,
 	}
 
-	game.LoadLevel("Level_0")
+	game.LoadLevel("Level_1")
 
 	return &game
 }

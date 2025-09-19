@@ -1,6 +1,9 @@
 package game
 
 import (
+	"path/filepath"
+	"strings"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -9,6 +12,7 @@ type Level struct {
 	Name       string            `json:"identifier"`
 	Neighbours []*LevelNeighbour `json:"__neighbours"`
 	Layers     []*LevelLayer     `json:"layerInstances"`
+	Background string            `json:"bgRelPath"`
 	Props      []Prop
 }
 
@@ -27,6 +31,10 @@ type LevelNeighbour struct {
 
 func (l *Level) Load() {
 	l.GetGroundLayer().LoadLayout()
+
+	if l.Background != "" {
+		l.Background = strings.TrimSuffix(filepath.Base(l.Background), filepath.Ext(l.Background))
+	}
 }
 
 func (l *Level) Draw(r *Renderer) {
@@ -35,29 +43,15 @@ func (l *Level) Draw(r *Renderer) {
 }
 
 func (l *Level) DrawBackground(r *Renderer) {
-	for _, tile := range l.GetBackgroundLayer().Layout {
-		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
-		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
-		r.DrawSprite("ground", rec, tile.Position)
-	}
+	r.DrawBackground(l.Background)
 }
 
 func (l *Level) DrawGround(r *Renderer) {
 	for _, tile := range l.GetGroundLayer().Layout {
 		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
 		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
-		r.DrawSprite("ground", rec, tile.Position)
+		r.DrawSprite("tileset_ground", rec, tile.Position)
 	}
-}
-
-func (l *Level) GetBackgroundLayer() *LevelLayer {
-	for _, layer := range l.Layers {
-		if layer.Name == "Background" {
-			return layer
-		}
-	}
-
-	return nil
 }
 
 func (l *Level) GetGroundLayer() *LevelLayer {
