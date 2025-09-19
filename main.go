@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"game3/game"
 	"game3/ui"
 	"time"
@@ -40,7 +41,10 @@ func main() {
 	rl.SetTargetFPS(TARGET_FPS)
 	rl.SetExitKey(0)
 
-	instance := game.InitGame()
+	debugMode := flag.Bool("debug", false, "init the game in debug mode")
+	flag.Parse()
+
+	instance := game.InitGame(*debugMode)
 
 	for ! rl.WindowShouldClose() {
 		updateScreenScale()

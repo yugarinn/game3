@@ -47,7 +47,7 @@ type Game struct {
 	World                   *World
 	CurrentLevel            *Level
 	Renderer                *Renderer
-
+	DebugMode               bool
 }
 
 type World struct {
@@ -55,7 +55,7 @@ type World struct {
 	Levels []*Level `json:"levels"`
 }
 
-func InitGame() *Game {
+func InitGame(debugMode bool) *Game {
 	world, loadWorldErr := LoadWorld()
 	if loadWorldErr != nil {
 		panic(fmt.Sprintf("error loading world: %s", loadWorldErr.Error()))
@@ -73,6 +73,7 @@ func InitGame() *Game {
 
 	renderer := &Renderer{
 		Textures: textures,
+		DebugMode: debugMode,
 	}
 
 	pc := InitPlayer()
@@ -82,6 +83,7 @@ func InitGame() *Game {
 		State: Playing,
 		World: world,
 		Renderer: renderer,
+		DebugMode: debugMode,
 	}
 
 	game.LoadLevel("Level_1")
@@ -159,7 +161,10 @@ func (g *Game) Tick(delta float32) {
 
 	g.Render()
 	g.IncreaseFrameCount()
-	g.LogState()
+
+	if g.DebugMode {
+		g.LogState()
+	}
 }
 
 func LoadWorld() (*World, error) {
