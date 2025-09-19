@@ -107,6 +107,7 @@ func (g *Game) Tick(delta float32) {
 	g.CheckRoomChange()
 
 	g.Player.Tick(delta, g.CurrentLevel)
+	g.CurrentLevel.Tick(delta)
 
 	g.Render()
 	g.IncreaseFrameCount()
