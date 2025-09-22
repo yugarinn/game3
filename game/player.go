@@ -90,9 +90,11 @@ func (player *Player) Draw() {
 
 	rl.DrawTextureRec(player.Sprite, player.TextureRect, spriteVector, rl.White)
 
-	// TODO: if g.InDebugMode
-	// rl.DrawRectangleLinesEx(player.HitboxRect, 1, rl.NewColor(230, 41, 55, 100))
-	// rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
+}
+
+func (player *Player) DrawHitbox() {
+	rl.DrawRectangleLinesEx(player.HitboxRect, 1, rl.Blue)
+	rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
 }
 
 func (player *Player) Tick(delta float32, level *Level) {

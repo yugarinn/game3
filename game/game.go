@@ -155,6 +155,12 @@ func (g *Game) FindLevelNameFromID(levelID string) string {
 func (g *Game) Render() {
 	g.CurrentLevel.Draw(g.Renderer)
 	g.Player.Draw()
+
+	if g.DebugMode {
+		g.Player.DrawHitbox()
+	}
+
+	g.CurrentLevel.DrawParticles(g.Renderer)
 }
 
 func (g *Game) CheckRoomChange() {
@@ -183,14 +189,14 @@ func (g *Game) CheckRoomChange() {
 			g.CurrentLevel.Unload()
 			g.LoadLevel(levelName)
 
-			g.Player.WentNorth = false
-			g.Player.WentEast = false
-			g.Player.WentSouth = false
-			g.Player.WentWest = false
-
 			break
 		}
 	}
+
+	g.Player.WentNorth = false
+	g.Player.WentEast = false
+	g.Player.WentSouth = false
+	g.Player.WentWest = false
 }
 
 func (game *Game) LogState() {
@@ -201,18 +207,16 @@ func (game *Game) LogState() {
 	rl.TraceLog(rl.LogInfo, "=======")
 	rl.TraceLog(rl.LogInfo, "frame: %d", game.AbsoluteFrame)
 	rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
-	rl.TraceLog(rl.LogInfo, "player.FramesCounter: %d", game.Player.FramesCounter)
+	// rl.TraceLog(rl.LogInfo, "player.FramesCounter: %d", game.Player.FramesCounter)
 	rl.TraceLog(rl.LogInfo, "player.Position.X: %f", game.Player.Position.X)
 	rl.TraceLog(rl.LogInfo, "player.Position.Y: %f", game.Player.Position.Y)
+	rl.TraceLog(rl.LogInfo, "player.WentNorth: %t", game.Player.WentNorth)
+	rl.TraceLog(rl.LogInfo, "player.WentEast: %t", game.Player.WentEast)
+	rl.TraceLog(rl.LogInfo, "player.WentSouth: %t", game.Player.WentSouth)
+	rl.TraceLog(rl.LogInfo, "player.WentWest: %t", game.Player.WentWest)
 	rl.TraceLog(rl.LogInfo, "input.moveLeft: %v", moveLeft)
 	rl.TraceLog(rl.LogInfo, "input.moveRight: %v", moveRight)
 	rl.TraceLog(rl.LogInfo, "input.jump: %v", jump)
-	rl.TraceLog(rl.LogInfo, "input.buttonPressed: %v", rl.GetGamepadButtonPressed())
-	rl.TraceLog(rl.LogInfo, "input.isGamePad0Present: %v, %v", rl.IsGamepadAvailable(0), rl.GetGamepadName(0))
-	rl.TraceLog(rl.LogInfo, "input.isGamePad1Present: %v, %v", rl.IsGamepadAvailable(1), rl.GetGamepadName(1))
-	rl.TraceLog(rl.LogInfo, "input.isGamePad2Present: %v", rl.IsGamepadAvailable(2))
-	rl.TraceLog(rl.LogInfo, "input.isGamePad3Present: %v", rl.IsGamepadAvailable(3))
-	rl.TraceLog(rl.LogInfo, "input.isGamePad4Present: %v", rl.IsGamepadAvailable(4))
 	rl.TraceLog(rl.LogInfo, "game.State: %s", game.State)
 }
 

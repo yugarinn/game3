@@ -66,7 +66,7 @@ func main() {
 			if rl.IsKeyPressed(rl.KeyR) {
 				instance.Player.Position = rl.NewVector2(60, 60)
 				instance.Player.Velocity.Y = 0
-				instance.LoadLevel("Level_0")
+				instance.LoadLevel("Level_1")
 			}
 
 			if instance.State == game.MainMenu {
