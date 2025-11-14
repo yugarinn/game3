@@ -17,4 +17,20 @@ type Prop struct {
 	AnimationFramesCounter int32
 	FramesCounter          int32
 	FramesSpeed            int32
+	HitboxRect             rl.Rectangle
+	IsSelected             bool
+}
+
+type LDtkEntity struct {
+	Width  int 
+	Height int 
+    Px     []float32
+}
+
+func NewPropFromLDtk(entity *LDtkEntity) *Prop {
+	return &Prop{
+		Position: entity.Px,
+		HitboxRect: rl.NewRectangle(entity.Px[0], entity.Px[1], 8, 8),
+		Pickable: true,
+	}
 }

@@ -26,3 +26,11 @@ func (r *Renderer) DrawBackground(textureID string) {
 func (r *Renderer) DrawParticle(particle *Particle) {
 	rl.DrawPixel(int32(particle.Position.X), int32(particle.Position.Y), rl.White)
 }
+
+func (r *Renderer) DrawProp(prop *Prop) {
+	rl.DrawRectangle(int32(prop.Position[0]), int32(prop.Position[1]), 8, 8, rl.Green)
+
+	if r.DebugMode {
+		rl.DrawRectangleLines(int32(prop.Position[0]), int32(prop.Position[1]), 8, 8, rl.Red)
+	}
+}

@@ -13,15 +13,17 @@ type Level struct {
 	Neighbours []*LevelNeighbour `json:"__neighbours"`
 	Layers     []*LevelLayer     `json:"layerInstances"`
 	Background string            `json:"bgRelPath"`
-	Props      []Prop
+	Props      []*Prop
 	Particles  []*Particle
 }
 
 type LevelLayer struct {
-	ID          string      `json:"iid"`
-	Name        string      `json:"__identifier"`
-	TilesetPath []*Tile     `json:"__tilesetRelPath"`
-	RawLayout   []*LDtkTile `json:"gridTiles"`
+	ID          string        `json:"iid"`
+	Name        string        `json:"__identifier"`
+	TilesetPath []*Tile       `json:"__tilesetRelPath"`
+	RawLayout   []*LDtkTile   `json:"gridTiles"`
+	RawEntities []*LDtkEntity `json:"entityInstances"`
+	Entities    []*Prop
 	Layout      []*Tile
 }
 
@@ -32,6 +34,7 @@ type LevelNeighbour struct {
 
 func (l *Level) Load() {
 	l.GetGroundLayer().LoadLayout()
+	l.LoadProps()
 	l.LoadParticles()
 
 	if l.Background != "" {
@@ -70,6 +73,12 @@ func (l *Level) DrawGround(r *Renderer) {
 	}
 }
 
+func (l *Level) DrawProps(r *Renderer) {
+	for _, prop := range l.Props {
+		r.DrawProp(prop)
+	}
+}
+
 func (l *Level) DrawParticles(r *Renderer) {
 	for _, particle := range(l.Particles) {
 		r.DrawParticle(particle)
@@ -79,6 +88,16 @@ func (l *Level) DrawParticles(r *Renderer) {
 func (l *Level) GetGroundLayer() *LevelLayer {
 	for _, layer := range l.Layers {
 		if layer.Name == "Ground" {
+			return layer
+		}
+	}
+
+	return nil
+}
+
+func (l *Level) GetEntitiesLayer() *LevelLayer {
+	for _, layer := range l.Layers {
+		if layer.Name == "Entities" {
 			return layer
 		}
 	}
@@ -100,4 +119,18 @@ func (ll *LevelLayer) LoadLayout() {
 	}
 
 	ll.Layout = tiles
+}
+
+func (l *Level) LoadProps() {
+	propsLayer := l.GetEntitiesLayer()
+	if propsLayer == nil {
+		return
+	}
+
+	var props []*Prop
+	for _, entity := range propsLayer.RawEntities {
+		props = append(props, NewPropFromLDtk(entity))
+	}
+
+	l.Props = props
 }

@@ -29,8 +29,6 @@ type Player struct {
 	FacingDirection   string
 	State             string
 	LastStateChangeAt float64
-	AttackTime        float64
-	AttackDirection   string
 	OnGround          bool
 	IsRunning         bool
 	IsJumping         bool
@@ -40,6 +38,9 @@ type Player struct {
 	WentWest          bool
 	WentSouth         bool
 	WentEast          bool
+	Inventory         []*Prop
+	ActivePropIndex   int
+	IsDroppingActiveProp bool
 }
 
 func InitPlayer() *Player {
@@ -57,7 +58,6 @@ func InitPlayer() *Player {
 		FramesSpeed:     2,
 		FacingDirection: "RIGHT",
 		State:           "IDLE",
-		AttackTime:      0.2,
 		OnGround:        false,
 		CanJump:         true,
 		IsJumping:       false,
@@ -88,6 +88,22 @@ func (player *Player) Draw() {
 		spriteVector = rl.NewVector2(player.Position.X - 6, player.Position.Y)
 	}
 
+	// TODO: add smart following logic (props position should be the same as the player's a few frames ago)
+	var offset float32 = 0
+	for _, prop := range player.Inventory {
+		prop.Position[0] = player.Position.X
+		prop.Position[1] = player.Position.Y + 5
+
+		if (player.FacingDirection == "LEFT") {
+			prop.Position[0] = prop.Position[0] + 13 + offset
+		} else {
+			prop.Position[0] = prop.Position[0] - 10 - offset
+		}
+
+		rl.DrawRectangle(int32(prop.Position[0]), int32(prop.Position[1]), 8, 8, rl.Green)
+		offset = offset + 10
+	}
+
 	rl.DrawTextureRec(player.Sprite, player.TextureRect, spriteVector, rl.White)
 
 }
@@ -103,6 +119,11 @@ func (player *Player) Tick(delta float32, level *Level) {
 	player.UpdatePosition(delta, level)
 	player.UpdateState()
 	player.UpdateAnimation()
+	player.PickupCollidingProps(level)
+
+	if player.IsDroppingActiveProp {
+		player.DropActiveProp(level)
+	}
 }
 
 func (player *Player) ProcessInput(delta float32) {
@@ -110,6 +131,7 @@ func (player *Player) ProcessInput(delta float32) {
 	moveRight := rl.IsKeyDown(rl.KeyD) || rl.IsGamepadButtonDown(1, rl.GamepadButtonLeftFaceRight)
 	jump := rl.IsKeyDown(rl.KeySpace)
 	jumpReleased := rl.IsKeyReleased(rl.KeySpace)
+	dropProp := rl.IsKeyReleased(rl.KeyF)
 
 	// prevents spamming jumps
 	if jumpReleased {
@@ -160,6 +182,14 @@ func (player *Player) ProcessInput(delta float32) {
 		player.Velocity.Y = PLAYER_JUMP_FORCE
 		player.OnGround = false
 		player.CanJump = false
+	}
+
+	if dropProp {
+		if len(player.Inventory) < 1 {
+			return
+		}
+
+		player.IsDroppingActiveProp = true
 	}
 }
 
@@ -327,4 +357,43 @@ func (player *Player) HandleTileCollisions(layout []*Tile) {
 			}
 		}
 	}
+}
+
+func (player *Player) PickupCollidingProps(level *Level) {
+	for i := len(level.Props) - 1; i >= 0; i-- {
+		prop := level.Props[i]
+		if ! prop.Pickable {
+			continue
+		}
+
+		if rl.CheckCollisionRecs(player.HitboxRect, prop.HitboxRect) {
+			player.Inventory = append(player.Inventory, prop)
+			level.Props = append(level.Props[:i], level.Props[i+1:]...)
+
+			if player.ActivePropIndex == -1 {
+				player.ActivePropIndex = 0
+			}
+		}
+	}
+}
+
+func (player *Player) DropActiveProp(level *Level) {
+	if len(player.Inventory) == 0 || player.ActivePropIndex < 0 || player.ActivePropIndex >= len(player.Inventory) {
+		return
+	}
+	
+	drop := player.Inventory[player.ActivePropIndex]
+	drop.HitboxRect.X = drop.Position[0]
+	drop.HitboxRect.Y = drop.Position[1]
+
+	level.Props = append(level.Props, drop)
+	player.Inventory = append(player.Inventory[:player.ActivePropIndex], player.Inventory[player.ActivePropIndex+1:]...)
+	
+	if player.ActivePropIndex >= len(player.Inventory) && len(player.Inventory) > 0 {
+		player.ActivePropIndex = len(player.Inventory) - 1
+	} else if len(player.Inventory) == 0 {
+		player.ActivePropIndex = -1
+	}
+	
+	player.IsDroppingActiveProp = false
 }

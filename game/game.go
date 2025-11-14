@@ -154,13 +154,13 @@ func (g *Game) FindLevelNameFromID(levelID string) string {
 
 func (g *Game) Render() {
 	g.CurrentLevel.Draw(g.Renderer)
+	g.CurrentLevel.DrawProps(g.Renderer)
 	g.Player.Draw()
+	g.CurrentLevel.DrawParticles(g.Renderer)
 
 	if g.DebugMode {
 		g.Player.DrawHitbox()
 	}
-
-	g.CurrentLevel.DrawParticles(g.Renderer)
 }
 
 func (g *Game) CheckRoomChange() {
