@@ -3,9 +3,9 @@ package game
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"game3/assets"
+	"game3/levels"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -23,10 +23,10 @@ const (
 const (
 	GRAVITY                float32 = 900
 	FALL_TERMINAL_VELOCITY float32 = 600
-	DEBUG                     bool = false
+	DEBUG                  bool    = false
 )
 
-var gameStateName = map[GameState]string {
+var gameStateName = map[GameState]string{
 	MainMenu: "MainMenu",
 	Playing:  "Playing",
 	TimeStop: "TimeStop",
@@ -65,24 +65,26 @@ func InitGame(debugMode bool) *Game {
 	tilesetGroundImage := rl.LoadImageFromMemory(".png", assets.GROUND_SPRITE_DATA, int32(len(assets.GROUND_SPRITE_DATA)))
 	backgroundDaylightSky := rl.LoadImageFromMemory(".png", assets.BACKRGOUND_DAYLIGHT_SKY, int32(len(assets.BACKRGOUND_DAYLIGHT_SKY)))
 	backgroundUnderground := rl.LoadImageFromMemory(".png", assets.BACKRGOUND_UNDERGROUND, int32(len(assets.BACKRGOUND_UNDERGROUND)))
+	tilemap := rl.LoadImageFromMemory(".png", assets.TILEMAP, int32(len(assets.TILEMAP)))
 	var textures = map[string]rl.Texture2D{
-		"tileset_ground": rl.LoadTextureFromImage(tilesetGroundImage),
+		"tilemap":                 rl.LoadTextureFromImage(tilemap),
+		"tileset_ground":          rl.LoadTextureFromImage(tilesetGroundImage),
 		"background-daylight-sky": rl.LoadTextureFromImage(backgroundDaylightSky),
-		"background-underground": rl.LoadTextureFromImage(backgroundUnderground),
+		"background-underground":  rl.LoadTextureFromImage(backgroundUnderground),
 	}
 
 	renderer := &Renderer{
-		Textures: textures,
+		Textures:  textures,
 		DebugMode: debugMode,
 	}
 
 	pc := InitPlayer()
 
 	game := Game{
-		Player: pc,
-		State: Playing,
-		World: world,
-		Renderer: renderer,
+		Player:    pc,
+		State:     Playing,
+		World:     world,
+		Renderer:  renderer,
 		DebugMode: debugMode,
 	}
 
@@ -118,13 +120,8 @@ func (g *Game) Tick(delta float32) {
 }
 
 func LoadWorld() (*World, error) {
-	worldFile, jsonErr := os.ReadFile("levels/game3.ldtk")
-	if jsonErr != nil {
-		return nil, jsonErr
-	}
-
 	var world World
-	json.Unmarshal(worldFile, &world)
+	json.Unmarshal(levels.LEVELS, &world)
 
 	return &world, nil
 }
@@ -144,7 +141,7 @@ func (g *Game) LoadLevel(levelName string) {
 
 func (g *Game) FindLevelNameFromID(levelID string) string {
 	for _, level := range g.World.Levels {
-		if level.ID  == levelID {
+		if level.ID == levelID {
 			return level.Name
 		}
 	}
@@ -155,7 +152,7 @@ func (g *Game) FindLevelNameFromID(levelID string) string {
 func (g *Game) Render() {
 	g.CurrentLevel.Draw(g.Renderer)
 	g.CurrentLevel.DrawProps(g.Renderer)
-	g.Player.Draw()
+	g.Player.Draw(g.Renderer)
 	g.CurrentLevel.DrawParticles(g.Renderer)
 
 	if g.DebugMode {
@@ -188,6 +185,7 @@ func (g *Game) CheckRoomChange() {
 
 			g.CurrentLevel.Unload()
 			g.LoadLevel(levelName)
+			g.Player.Path = make([]rl.Vector2, 20)
 
 			break
 		}
@@ -200,24 +198,23 @@ func (g *Game) CheckRoomChange() {
 }
 
 func (game *Game) LogState() {
-	moveLeft := rl.IsKeyDown(rl.KeyA)
-	moveRight := rl.IsKeyDown(rl.KeyD)
-	jump := rl.IsKeyPressed(rl.KeySpace)
-
-	rl.TraceLog(rl.LogInfo, "=======")
-	rl.TraceLog(rl.LogInfo, "frame: %d", game.AbsoluteFrame)
-	rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
+	// rl.TraceLog(rl.LogInfo, "=======")
+	// rl.TraceLog(rl.LogInfo, "frame: %d", game.AbsoluteFrame)
+	// rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
 	// rl.TraceLog(rl.LogInfo, "player.FramesCounter: %d", game.Player.FramesCounter)
-	rl.TraceLog(rl.LogInfo, "player.Position.X: %f", game.Player.Position.X)
-	rl.TraceLog(rl.LogInfo, "player.Position.Y: %f", game.Player.Position.Y)
-	rl.TraceLog(rl.LogInfo, "player.WentNorth: %t", game.Player.WentNorth)
-	rl.TraceLog(rl.LogInfo, "player.WentEast: %t", game.Player.WentEast)
-	rl.TraceLog(rl.LogInfo, "player.WentSouth: %t", game.Player.WentSouth)
-	rl.TraceLog(rl.LogInfo, "player.WentWest: %t", game.Player.WentWest)
-	rl.TraceLog(rl.LogInfo, "input.moveLeft: %v", moveLeft)
-	rl.TraceLog(rl.LogInfo, "input.moveRight: %v", moveRight)
-	rl.TraceLog(rl.LogInfo, "input.jump: %v", jump)
-	rl.TraceLog(rl.LogInfo, "game.State: %s", game.State)
+	// rl.TraceLog(rl.LogInfo, "player.Position.X: %f", game.Player.Position.X)
+	// rl.TraceLog(rl.LogInfo, "player.Position.Y: %f", game.Player.Position.Y)
+	// rl.TraceLog(rl.LogInfo, "player.WentNorth: %t", game.Player.WentNorth)
+	// rl.TraceLog(rl.LogInfo, "player.WentEast: %t", game.Player.WentEast)
+	// rl.TraceLog(rl.LogInfo, "player.WentSouth: %t", game.Player.WentSouth)
+	// rl.TraceLog(rl.LogInfo, "player.WentWest: %t", game.Player.WentWest)
+	// rl.TraceLog(rl.LogInfo, "input.moveLeft: %v", moveLeft)
+	// rl.TraceLog(rl.LogInfo, "input.moveRight: %v", moveRight)
+	// rl.TraceLog(rl.LogInfo, "input.jump: %v", jump)
+	// rl.TraceLog(rl.LogInfo, "game.State: %s", game.State)
+	for _, prop := range game.CurrentLevel.Props {
+		rl.TraceLog(rl.LogInfo, fmt.Sprintf("level.Props: %#v", prop))
+	}
 }
 
 func (game *Game) IncreaseFrameCount() {

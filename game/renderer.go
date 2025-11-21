@@ -28,9 +28,20 @@ func (r *Renderer) DrawParticle(particle *Particle) {
 }
 
 func (r *Renderer) DrawProp(prop *Prop) {
-	rl.DrawRectangle(int32(prop.Position[0]), int32(prop.Position[1]), 8, 8, rl.Green)
+	// TODO: texture position for each prop should be an actual field in the prop => prop.TextureCoordinates
+	// that could even change depending on the prop state, for example, an opened door vs a closed one
+	switch prop.Type {
+	case PropKey:
+		rec := rl.NewRectangle(48, 32, 8, 8)
+		rl.DrawTextureRec(r.Textures["tilemap"], rec, prop.Position, rl.White)
+	case PropDoor:
+		rec := rl.NewRectangle(88, 48, 16, 16)
+		rl.DrawTextureRec(r.Textures["tilemap"], rec, prop.Position, rl.White)
+	default:
+		rl.DrawRectangle(int32(prop.Position.X), int32(prop.Position.Y), 8, 8, rl.Green)
+	}
 
 	if r.DebugMode {
-		rl.DrawRectangleLines(int32(prop.Position[0]), int32(prop.Position[1]), 8, 8, rl.Red)
+		rl.DrawRectangleLines(int32(prop.Position.X), int32(prop.Position.Y), 8, 8, rl.Red)
 	}
 }

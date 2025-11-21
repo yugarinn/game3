@@ -26,7 +26,7 @@ type UiElement struct {
 	Margin          UiMargin
 	VPosition       UiVerticalPosition
 	HPosition       UiHorizontalPosition
-	Container 		rl.Rectangle
+	Container       rl.Rectangle
 	Childs          []*UiElement
 	Listeners       map[string][]EventListener
 	Text            string
@@ -62,16 +62,16 @@ func NewUiElement(properties NewUiElementInput) UiElement {
 	listeners["hover"] = []EventListener{}
 
 	return UiElement{
-		Rectangle: rectangle,
+		Rectangle:       rectangle,
 		BackgroundColor: properties.BackgroundColor,
-		BorderColor: properties.BorderColor,
-		BorderWidth: properties.BorderWidth,
-		Margin: properties.Margin,
-		HPosition: properties.HPosition,
-		VPosition: properties.VPosition,
-		Container: container,
-		Listeners: listeners,
-		Text: properties.Text,
+		BorderColor:     properties.BorderColor,
+		BorderWidth:     properties.BorderWidth,
+		Margin:          properties.Margin,
+		HPosition:       properties.HPosition,
+		VPosition:       properties.VPosition,
+		Container:       container,
+		Listeners:       listeners,
+		Text:            properties.Text,
 	}
 }
 
@@ -104,7 +104,7 @@ func (e *UiElement) DrawText() {
 		return
 	}
 
-	xPosition, yPosition := getRectanglePosition(e.Rectangle, e.Rectangle.Width / 2, e.Rectangle.Height / 2, HCentered, VCentered, UiMargin{})
+	xPosition, yPosition := getRectanglePosition(e.Rectangle, e.Rectangle.Width/2, e.Rectangle.Height/2, HCentered, VCentered, UiMargin{})
 	rl.DrawText(e.Text, int32(xPosition), int32(yPosition), 7, rl.White)
 }
 
@@ -146,7 +146,7 @@ func getRectanglePosition(container rl.Rectangle, width, height float32, hpositi
 	}
 
 	if hposition == HCentered {
-		yPosition = container.Y + (container.Height / 2 - height / 2)
+		yPosition = container.Y + (container.Height/2 - height/2)
 	}
 
 	if vposition == Right {
@@ -154,7 +154,7 @@ func getRectanglePosition(container rl.Rectangle, width, height float32, hpositi
 	}
 
 	if vposition == VCentered {
-		xPosition = container.X + (container.Width / 2 - width / 2)
+		xPosition = container.X + (container.Width/2 - width/2)
 	}
 
 	xPosition += margin.Left - margin.Right

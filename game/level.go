@@ -47,7 +47,7 @@ func (l *Level) Unload() {
 }
 
 func (l *Level) Tick(delta float32) {
-	for i, particle := range(l.Particles) {
+	for i, particle := range l.Particles {
 		particle.UpdatePosition(delta)
 
 		if particle.FramesToLive < 0 {
@@ -69,7 +69,7 @@ func (l *Level) DrawGround(r *Renderer) {
 	for _, tile := range l.GetGroundLayer().Layout {
 		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
 		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
-		r.DrawSprite("tileset_ground", rec, tile.Position)
+		r.DrawSprite("tilemap", rec, tile.Position)
 	}
 }
 
@@ -80,7 +80,7 @@ func (l *Level) DrawProps(r *Renderer) {
 }
 
 func (l *Level) DrawParticles(r *Renderer) {
-	for _, particle := range(l.Particles) {
+	for _, particle := range l.Particles {
 		r.DrawParticle(particle)
 	}
 }
@@ -107,7 +107,7 @@ func (l *Level) GetEntitiesLayer() *LevelLayer {
 
 func (l *Level) LoadParticles() {
 	// TODO: the particles density should be determined by a level prop
-	for range(20) {
+	for range 20 {
 		l.Particles = append(l.Particles, NewParticle())
 	}
 }

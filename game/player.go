@@ -16,35 +16,36 @@ const (
 )
 
 type Player struct {
-	Position          rl.Vector2
-	Velocity          rl.Vector2
-	MaxHealth         int8
-	Health            int8
-	Sprite            rl.Texture2D
-	TextureRect       rl.Rectangle
-	HitboxRect        rl.Rectangle
-	CurrentFrame      int32
-	FramesCounter     int32
-	FramesSpeed       int32
-	FacingDirection   string
-	State             string
-	LastStateChangeAt float64
-	OnGround          bool
-	IsRunning         bool
-	IsJumping         bool
-	IsFalling         bool
-	CanJump           bool
-	WentNorth         bool
-	WentWest          bool
-	WentSouth         bool
-	WentEast          bool
-	Inventory         []*Prop
-	ActivePropIndex   int
+	Position             rl.Vector2
+	Velocity             rl.Vector2
+	MaxHealth            int8
+	Health               int8
+	Sprite               rl.Texture2D
+	TextureRect          rl.Rectangle
+	HitboxRect           rl.Rectangle
+	CurrentFrame         int32
+	FramesCounter        int32
+	FramesSpeed          int32
+	FacingDirection      string
+	State                string
+	LastStateChangeAt    float64
+	OnGround             bool
+	IsRunning            bool
+	IsJumping            bool
+	IsFalling            bool
+	CanJump              bool
+	WentNorth            bool
+	WentWest             bool
+	WentSouth            bool
+	WentEast             bool
+	Inventory            []*Prop
+	ActivePropIndex      int
 	IsDroppingActiveProp bool
+	Path                 []rl.Vector2
 }
 
 func InitPlayer() *Player {
-	playerImage := rl.LoadImageFromMemory(".png", assets.PLAYER_SPRITE_DATA, int32(len(assets.PLAYER_SPRITE_DATA)))
+	playerImage := rl.LoadImageFromMemory(".png", assets.TILEMAP, int32(len(assets.TILEMAP)))
 
 	player := Player{
 		Position:        rl.NewVector2(10, 140),
@@ -52,7 +53,7 @@ func InitPlayer() *Player {
 		MaxHealth:       20,
 		Health:          20,
 		Sprite:          rl.LoadTextureFromImage(playerImage),
-		TextureRect:     rl.NewRectangle(0, 0, 16, 17),
+		TextureRect:     rl.NewRectangle(0, 56, 8, 8),
 		CurrentFrame:    0,
 		FramesCounter:   0,
 		FramesSpeed:     2,
@@ -63,49 +64,74 @@ func InitPlayer() *Player {
 		IsJumping:       false,
 		IsFalling:       false,
 		WentNorth:       false,
-	    WentWest:        false,
-	    WentSouth:       false,
-	    WentEast:        false,
+		WentWest:        false,
+		WentSouth:       false,
+		WentEast:        false,
 	}
 
-	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 9, 17)
+	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 8, 8)
 
 	return &player
 }
 
-func (player *Player) Draw() {
+func (player *Player) Draw(r *Renderer) {
 	var spriteVector rl.Vector2
 
 	if player.FacingDirection == "RIGHT" {
 		spriteVector = player.Position
-		player.TextureRect.Width = 16
+		player.TextureRect.Width = 8
 	}
 
 	if player.FacingDirection == "LEFT" {
-		player.TextureRect.Width = -16
+		player.TextureRect.Width = -8
 
 		// weird hack, the recommended way to flip a texture in raylib, negating the width, offsets it...
-		spriteVector = rl.NewVector2(player.Position.X - 6, player.Position.Y)
+		spriteVector = rl.NewVector2(player.Position.X-1, player.Position.Y)
 	}
 
-	// TODO: add smart following logic (props position should be the same as the player's a few frames ago)
-	var offset float32 = 0
-	for _, prop := range player.Inventory {
-		prop.Position[0] = player.Position.X
-		prop.Position[1] = player.Position.Y + 5
-
-		if (player.FacingDirection == "LEFT") {
-			prop.Position[0] = prop.Position[0] + 13 + offset
-		} else {
-			prop.Position[0] = prop.Position[0] - 10 - offset
-		}
-
-		rl.DrawRectangle(int32(prop.Position[0]), int32(prop.Position[1]), 8, 8, rl.Green)
-		offset = offset + 10
-	}
-
+	player.DrawInventory(r)
 	rl.DrawTextureRec(player.Sprite, player.TextureRect, spriteVector, rl.White)
 
+}
+
+func (player *Player) DrawInventory(r *Renderer) {
+	isMoving := rl.Vector2Length(player.Velocity) > 0.1
+
+	for i := range player.Inventory {
+		var targetDistance int
+		if isMoving {
+			targetDistance = 15 * (i + 1)
+		} else {
+			targetDistance = 5 * (i + 1)
+		}
+
+		var targetPos rl.Vector2
+		pathIndex := len(player.Path) - targetDistance
+
+		if pathIndex >= 0 && pathIndex < len(player.Path) {
+			targetPos = player.Path[pathIndex]
+		} else {
+			targetPos = player.Position
+		}
+
+		if !isMoving && len(player.Path) > 0 {
+			lastGroundPos := player.Path[len(player.Path)-1]
+			offsetX := float32(-(i + 1) * 10)
+			targetPos = rl.Vector2{
+				X: lastGroundPos.X + offsetX,
+				Y: lastGroundPos.Y,
+			}
+		}
+
+		smoothing := float32(0.15)
+		player.Inventory[i].Position = rl.Vector2Lerp(
+			player.Inventory[i].Position,
+			targetPos,
+			smoothing,
+		)
+
+		r.DrawProp(player.Inventory[i])
+	}
 }
 
 func (player *Player) DrawHitbox() {
@@ -120,6 +146,7 @@ func (player *Player) Tick(delta float32, level *Level) {
 	player.UpdateState()
 	player.UpdateAnimation()
 	player.PickupCollidingProps(level)
+	player.RecordPath()
 
 	if player.IsDroppingActiveProp {
 		player.DropActiveProp(level)
@@ -194,7 +221,7 @@ func (player *Player) ProcessInput(delta float32) {
 }
 
 func (player *Player) CalculateVelocity(delta float32) {
-	if ! player.OnGround {
+	if !player.OnGround {
 		player.Velocity.Y += GRAVITY * delta
 	}
 
@@ -267,6 +294,13 @@ func (player *Player) UpdateHitbox() {
 func (player *Player) UpdateAnimation() {
 	player.FramesCounter++
 
+	if !player.IsRunning {
+		player.CurrentFrame = 0
+		player.TextureRect.X = 0
+
+		return
+	}
+
 	if player.FramesCounter >= (60 / player.FramesSpeed) {
 		player.FramesCounter = 0
 		player.CurrentFrame++
@@ -275,34 +309,19 @@ func (player *Player) UpdateAnimation() {
 			player.CurrentFrame = 0
 		}
 
-		if player.IsRunning && player.CurrentFrame > 3 {
+		if player.IsRunning && player.CurrentFrame > 1 {
 			player.CurrentFrame = 0
 		}
 
 		if !player.IsRunning {
-			player.TextureRect.Y = 0
+			player.TextureRect.X = 0
 		}
 
 		if player.IsRunning {
-			player.TextureRect.Y = 31
+			offset := (float32(player.CurrentFrame) * 8) + 8
+			player.TextureRect.X = offset
 		}
 
-		if player.IsJumping {
-			player.TextureRect.X = 16
-			player.TextureRect.Y = 80
-
-			return
-		}
-
-		if player.IsFalling {
-			player.TextureRect.X = 48
-			player.TextureRect.Y = 80
-
-			return
-		}
-
-		offset := float32(player.CurrentFrame) * 16
-		player.TextureRect.X = offset
 	}
 }
 
@@ -362,7 +381,7 @@ func (player *Player) HandleTileCollisions(layout []*Tile) {
 func (player *Player) PickupCollidingProps(level *Level) {
 	for i := len(level.Props) - 1; i >= 0; i-- {
 		prop := level.Props[i]
-		if ! prop.Pickable {
+		if !prop.Pickable {
 			continue
 		}
 
@@ -381,19 +400,38 @@ func (player *Player) DropActiveProp(level *Level) {
 	if len(player.Inventory) == 0 || player.ActivePropIndex < 0 || player.ActivePropIndex >= len(player.Inventory) {
 		return
 	}
-	
+
 	drop := player.Inventory[player.ActivePropIndex]
-	drop.HitboxRect.X = drop.Position[0]
-	drop.HitboxRect.Y = drop.Position[1]
+	drop.HitboxRect.X = drop.Position.X
+	drop.HitboxRect.Y = drop.Position.Y
 
 	level.Props = append(level.Props, drop)
 	player.Inventory = append(player.Inventory[:player.ActivePropIndex], player.Inventory[player.ActivePropIndex+1:]...)
-	
+
 	if player.ActivePropIndex >= len(player.Inventory) && len(player.Inventory) > 0 {
 		player.ActivePropIndex = len(player.Inventory) - 1
 	} else if len(player.Inventory) == 0 {
 		player.ActivePropIndex = -1
 	}
-	
+
 	player.IsDroppingActiveProp = false
+}
+
+func (player *Player) IsMoving() bool {
+	return player.Velocity.X != 0 || player.Velocity.Y != 0
+}
+
+func (player *Player) RecordPath() {
+	if len(player.Path) < 1 {
+		player.Path = append(player.Path, player.Position)
+		return
+	}
+
+	if player.IsMoving() {
+		if len(player.Path) >= 100 {
+			player.Path = player.Path[1:]
+		}
+
+		player.Path = append(player.Path, player.Position)
+	}
 }

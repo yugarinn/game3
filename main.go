@@ -28,7 +28,7 @@ var (
 
 func main() {
 	slowMotionScale := 1
-	rl.InitWindow(VIRTUAL_WINDOW_WIDTH * 3, VIRTUAL_WINDOW_HEIGHT * 3, GAME_TITLE)
+	rl.InitWindow(VIRTUAL_WINDOW_WIDTH*3, VIRTUAL_WINDOW_HEIGHT*3, GAME_TITLE)
 	defer rl.CloseWindow()
 
 	virtualScreen = rl.LoadRenderTexture(VIRTUAL_WINDOW_WIDTH, VIRTUAL_WINDOW_HEIGHT)
@@ -46,7 +46,7 @@ func main() {
 
 	instance := game.InitGame(*debugMode)
 
-	for ! rl.WindowShouldClose() {
+	for !rl.WindowShouldClose() {
 		updateScreenScale()
 
 		delta := rl.GetFrameTime()
@@ -104,7 +104,7 @@ func updateScreenScale() {
 	offset.X = (float32(windowWidth) - (float32(VIRTUAL_WINDOW_WIDTH) * scale)) * 0.5
 	offset.Y = (float32(windowHeight) - (float32(VIRTUAL_WINDOW_HEIGHT) * scale)) * 0.5
 
-	rl.SetMouseScale(1 / scale, 1 / scale)
+	rl.SetMouseScale(1/scale, 1/scale)
 }
 
 func projectVirtualScreenToWindow() {
@@ -114,8 +114,8 @@ func projectVirtualScreenToWindow() {
 	destination := rl.NewRectangle(
 		offset.X,
 		offset.Y,
-		float32(VIRTUAL_WINDOW_WIDTH) * scale,
-		float32(VIRTUAL_WINDOW_HEIGHT) * scale,
+		float32(VIRTUAL_WINDOW_WIDTH)*scale,
+		float32(VIRTUAL_WINDOW_HEIGHT)*scale,
 	)
 	origin := rl.NewVector2(0, 0)
 
