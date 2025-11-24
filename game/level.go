@@ -8,13 +8,14 @@ import (
 )
 
 type Level struct {
-	ID         string            `json:"iid"`
-	Name       string            `json:"identifier"`
-	Neighbours []*LevelNeighbour `json:"__neighbours"`
-	Layers     []*LevelLayer     `json:"layerInstances"`
-	Background string            `json:"bgRelPath"`
-	Props      []*Prop
-	Particles  []*Particle
+	ID                    string            `json:"iid"`
+	Name                  string            `json:"identifier"`
+	Neighbours            []*LevelNeighbour `json:"__neighbours"`
+	Layers                []*LevelLayer     `json:"layerInstances"`
+	Background            string            `json:"bgRelPath"`
+	Props                 []*Prop
+	Particles             []*Particle
+	CollisionableHitboxes []*rl.Rectangle
 }
 
 type LevelLayer struct {
@@ -36,6 +37,7 @@ func (l *Level) Load() {
 	l.GetGroundLayer().LoadLayout()
 	l.LoadProps()
 	l.LoadParticles()
+	l.LoadCollisionables()
 
 	if l.Background != "" {
 		l.Background = strings.TrimSuffix(filepath.Base(l.Background), filepath.Ext(l.Background))
@@ -133,4 +135,23 @@ func (l *Level) LoadProps() {
 	}
 
 	l.Props = props
+}
+
+func (l *Level) LoadCollisionables() {
+	var collisionableHitboxes []*rl.Rectangle
+
+	groundLayer := l.GetGroundLayer()
+	for _, tile := range groundLayer.Layout {
+		collisionableHitboxes = append(collisionableHitboxes, &tile.HitboxRect)
+	}
+
+	for _, prop := range l.Props {
+		if prop.Walkable {
+			continue
+		}
+
+		collisionableHitboxes = append(collisionableHitboxes, &prop.HitboxRect)
+	}
+
+	l.CollisionableHitboxes = collisionableHitboxes
 }

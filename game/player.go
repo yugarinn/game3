@@ -146,6 +146,7 @@ func (player *Player) Tick(delta float32, level *Level) {
 	player.UpdateState()
 	player.UpdateAnimation()
 	player.PickupCollidingProps(level)
+	player.OpenCollidingClosedDoors(level)
 	player.RecordPath()
 
 	if player.IsDroppingActiveProp {
@@ -235,7 +236,7 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 	player.Position.Y += player.Velocity.Y * delta
 
 	player.UpdateHitbox()
-	player.HandleTileCollisions(level.GetGroundLayer().Layout)
+	player.HandleCollisions(level.CollisionableHitboxes)
 
 	if player.Position.Y < -5 {
 		player.Position.Y = 180
@@ -325,15 +326,15 @@ func (player *Player) UpdateAnimation() {
 	}
 }
 
-func (player *Player) HandleTileCollisions(layout []*Tile) {
+func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle) {
 	player.OnGround = false
 
-	for _, tile := range layout {
-		if rl.CheckCollisionRecs(tile.HitboxRect, player.HitboxRect) {
-			overlapLeft := (player.HitboxRect.X + player.HitboxRect.Width) - tile.HitboxRect.X
-			overlapRight := (tile.HitboxRect.X + tile.HitboxRect.Width) - player.HitboxRect.X
-			overlapTop := (player.HitboxRect.Y + player.HitboxRect.Height) - tile.Position.Y
-			overlapBottom := (tile.Position.Y + tile.HitboxRect.Height) - player.HitboxRect.Y
+	for _, hitbox := range collisionableElements {
+		if rl.CheckCollisionRecs(*hitbox, player.HitboxRect) {
+			overlapLeft := (player.HitboxRect.X + player.HitboxRect.Width) - hitbox.X
+			overlapRight := (hitbox.X + hitbox.Width) - player.HitboxRect.X
+			overlapTop := (player.HitboxRect.Y + player.HitboxRect.Height) - hitbox.Y
+			overlapBottom := (hitbox.Y + hitbox.Height) - player.HitboxRect.Y
 
 			minOverlap := overlapLeft
 			collisionSide := "LEFT"
@@ -361,17 +362,17 @@ func (player *Player) HandleTileCollisions(layout []*Tile) {
 
 			switch collisionSide {
 			case "TOP":
-				player.Position.Y = tile.Position.Y - player.HitboxRect.Height
+				player.Position.Y = hitbox.Y - player.HitboxRect.Height
 				player.Velocity.Y = 0
 				player.OnGround = true
 			case "BOTTOM":
-				player.Position.Y = tile.Position.Y + tile.HitboxRect.Height
+				player.Position.Y = hitbox.Y + hitbox.Height
 				player.Velocity.Y = 0
 			case "LEFT":
-				player.Position.X = tile.Position.X - player.HitboxRect.Width
+				player.Position.X = hitbox.X - player.HitboxRect.Width
 				player.Velocity.X = 0
 			case "RIGHT":
-				player.Position.X = tile.Position.X + tile.HitboxRect.Width
+				player.Position.X = hitbox.X + hitbox.Width
 				player.Velocity.X = 0
 			}
 		}
@@ -433,5 +434,39 @@ func (player *Player) RecordPath() {
 		}
 
 		player.Path = append(player.Path, player.Position)
+	}
+}
+
+func (player *Player) OpenCollidingClosedDoors(l *Level) {
+	for i, prop := range l.Props {
+		if prop.Type != PropDoor {
+			continue
+		}
+
+		if rl.CheckCollisionRecs(player.HitboxRect, prop.HitboxRect) && player.HasKeyInInventory() {
+			l.Props[i].IsOpen = true
+			l.Props[i].Walkable = true
+			player.RemoveKeyFromInventory()
+		}
+	}
+
+	l.LoadCollisionables()
+}
+
+func (player *Player) HasKeyInInventory() bool {
+	for _, item := range player.Inventory {
+		if item.Type == PropKey {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (player *Player) RemoveKeyFromInventory() {
+	for i, item := range player.Inventory {
+		if item.Type == PropKey {
+			player.Inventory = append(player.Inventory[:i], player.Inventory[i+1:]...)
+		}
 	}
 }

@@ -9,6 +9,7 @@ type PropType int
 const (
 	PropKey PropType = iota
 	PropDoor
+	PropGrass
 	PropGeneral
 )
 
@@ -20,13 +21,15 @@ type Prop struct {
 	Sprite                 rl.Texture2D
 	TextureRect            rl.Rectangle
 	Position               rl.Vector2
+	Width                  float32
+	Height                 float32
 	IsAnimated             bool
 	CurrentFrame           int32
 	AnimationFramesCounter int32
 	FramesCounter          int32
 	FramesSpeed            int32
 	HitboxRect             rl.Rectangle
-	IsSelected             bool
+	IsOpen                 bool
 }
 
 type LDtkEntityCustomField struct {
@@ -58,19 +61,27 @@ func NewPropFromLDtk(entity *LDtkEntity) *Prop {
 		}
 	}
 
+	propType := entity.GetPropType()
+	width, height := getDimensionsForType(propType)
+	position := rl.NewVector2(entity.Px[0], entity.Px[1])
+	hitbox := rl.NewRectangle(position.X, position.Y, width, height)
+
 	return &Prop{
-		Type:       entity.GetPropType(),
+		Type:       propType,
 		Walkable:   walkable,
 		Pickable:   pickable,
-		Position:   rl.NewVector2(entity.Px[0], entity.Px[1]),
-		HitboxRect: rl.NewRectangle(entity.Px[0], entity.Px[1], 8, 8),
+		Position:   position,
+		HitboxRect: hitbox,
+		Width:      width,
+		Height:     height,
 	}
 }
 
 func (entity *LDtkEntity) GetPropType() PropType {
 	types := map[string]PropType{
-		"Key":  PropKey,
-		"Door": PropDoor,
+		"Key":    PropKey,
+		"Door":   PropDoor,
+		"Grass1": PropGrass,
 	}
 
 	if propType, ok := types[entity.ID]; ok {
@@ -88,4 +99,19 @@ func (entity *LDtkEntity) GetCustomFieldValue(identifier string) any {
 	}
 
 	return nil
+}
+
+func getDimensionsForType(propType PropType) (float32, float32) {
+	dimensions := map[PropType][]float32{
+		PropKey:     {8, 8},
+		PropDoor:    {16, 16},
+		PropGrass:   {8, 8},
+		PropGeneral: {8, 8},
+	}
+
+	if typeDimensions, ok := dimensions[propType]; ok {
+		return typeDimensions[0], typeDimensions[1]
+	}
+
+	return dimensions[PropGeneral][0], dimensions[PropGeneral][1]
 }

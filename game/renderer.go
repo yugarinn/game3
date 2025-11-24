@@ -28,20 +28,32 @@ func (r *Renderer) DrawParticle(particle *Particle) {
 }
 
 func (r *Renderer) DrawProp(prop *Prop) {
-	// TODO: texture position for each prop should be an actual field in the prop => prop.TextureCoordinates
-	// that could even change depending on the prop state, for example, an opened door vs a closed one
-	switch prop.Type {
-	case PropKey:
-		rec := rl.NewRectangle(48, 32, 8, 8)
-		rl.DrawTextureRec(r.Textures["tilemap"], rec, prop.Position, rl.White)
-	case PropDoor:
-		rec := rl.NewRectangle(88, 48, 16, 16)
-		rl.DrawTextureRec(r.Textures["tilemap"], rec, prop.Position, rl.White)
-	default:
-		rl.DrawRectangle(int32(prop.Position.X), int32(prop.Position.Y), 8, 8, rl.Green)
-	}
+	tilemapPositionX, tilemapPositionY := getPropTilemapPosition(prop.Type, prop.IsOpen)
+	rec := rl.NewRectangle(tilemapPositionX, tilemapPositionY, prop.Width, prop.Height)
+	rl.DrawTextureRec(r.Textures["tilemap"], rec, prop.Position, rl.White)
 
 	if r.DebugMode {
-		rl.DrawRectangleLines(int32(prop.Position.X), int32(prop.Position.Y), 8, 8, rl.Red)
+		rl.DrawRectangleLines(int32(prop.HitboxRect.X), int32(prop.HitboxRect.Y), prop.HitboxRect.ToInt32().Width, prop.HitboxRect.ToInt32().Height, rl.Purple)
 	}
+}
+
+func getPropTilemapPosition(propType PropType, isOpen bool) (float32, float32) {
+	positions := map[PropType][]float32{
+		PropKey:   {48, 32},
+		PropDoor:  {88, 48},
+		PropGrass: {40, 32},
+	}
+
+	if position, ok := positions[propType]; ok {
+		positionX := position[0]
+		positionY := position[1]
+
+		if isOpen && propType == PropDoor {
+			positionX += 16
+		}
+
+		return positionX, positionY
+	}
+
+	return 0, 0
 }
