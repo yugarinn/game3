@@ -34,7 +34,8 @@ type LevelNeighbour struct {
 }
 
 func (l *Level) Load() {
-	l.GetGroundLayer().LoadLayout()
+	l.GetLayer("Ground").LoadLayout()
+	l.GetLayer("Background").LoadLayout()
 	l.LoadProps()
 	l.LoadParticles()
 	l.LoadCollisionables()
@@ -64,11 +65,15 @@ func (l *Level) Draw(r *Renderer) {
 }
 
 func (l *Level) DrawBackground(r *Renderer) {
-	r.DrawBackground(l.Background)
+	for _, tile := range l.GetLayer("Background").Layout {
+		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
+		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
+		r.DrawSprite("tilemap", rec, tile.Position)
+	}
 }
 
 func (l *Level) DrawGround(r *Renderer) {
-	for _, tile := range l.GetGroundLayer().Layout {
+	for _, tile := range l.GetLayer("Ground").Layout {
 		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
 		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
 		r.DrawSprite("tilemap", rec, tile.Position)
@@ -87,9 +92,9 @@ func (l *Level) DrawParticles(r *Renderer) {
 	}
 }
 
-func (l *Level) GetGroundLayer() *LevelLayer {
+func (l *Level) GetLayer(layerName string) *LevelLayer {
 	for _, layer := range l.Layers {
-		if layer.Name == "Ground" {
+		if layer.Name == layerName {
 			return layer
 		}
 	}
@@ -140,7 +145,7 @@ func (l *Level) LoadProps() {
 func (l *Level) LoadCollisionables() {
 	var collisionableHitboxes []*rl.Rectangle
 
-	groundLayer := l.GetGroundLayer()
+	groundLayer := l.GetLayer("Ground")
 	for _, tile := range groundLayer.Layout {
 		collisionableHitboxes = append(collisionableHitboxes, &tile.HitboxRect)
 	}

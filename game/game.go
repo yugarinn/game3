@@ -21,7 +21,7 @@ const (
 )
 
 const (
-	GRAVITY                float32 = 900
+	GRAVITY                float32 = 500
 	FALL_TERMINAL_VELOCITY float32 = 600
 	DEBUG                  bool    = false
 )
@@ -62,6 +62,7 @@ func InitGame(debugMode bool) *Game {
 	}
 
 	// TODO: the keys from the map can probably be infered from the assets file data
+	// TODO: remove the old textures
 	tilesetGroundImage := rl.LoadImageFromMemory(".png", assets.GROUND_SPRITE_DATA, int32(len(assets.GROUND_SPRITE_DATA)))
 	backgroundDaylightSky := rl.LoadImageFromMemory(".png", assets.BACKRGOUND_DAYLIGHT_SKY, int32(len(assets.BACKRGOUND_DAYLIGHT_SKY)))
 	backgroundUnderground := rl.LoadImageFromMemory(".png", assets.BACKRGOUND_UNDERGROUND, int32(len(assets.BACKRGOUND_UNDERGROUND)))
@@ -88,7 +89,7 @@ func InitGame(debugMode bool) *Game {
 		DebugMode: debugMode,
 	}
 
-	game.LoadLevel("Level_1")
+	game.LoadLevel("Level_4")
 
 	return &game
 }
@@ -212,9 +213,15 @@ func (game *Game) LogState() {
 	// rl.TraceLog(rl.LogInfo, "input.moveRight: %v", moveRight)
 	// rl.TraceLog(rl.LogInfo, "input.jump: %v", jump)
 	// rl.TraceLog(rl.LogInfo, "game.State: %s", game.State)
-	for _, prop := range game.CurrentLevel.Props {
-		rl.TraceLog(rl.LogInfo, fmt.Sprintf("level.Props: %#v", prop))
-	}
+
+	// for _, prop := range game.CurrentLevel.Props {
+	// 	rl.TraceLog(rl.LogInfo, "level.Props: %#v", prop)
+	// }
+
+	rl.TraceLog(rl.LogInfo, "IsGamepadAvailable: %t", rl.IsGamepadAvailable(0))
+	rl.TraceLog(rl.LogInfo, "IsGamepadAvailable: %t", rl.IsGamepadAvailable(0))
+	rl.TraceLog(rl.LogInfo, "GamepadName: %s", rl.GetGamepadName(0))
+	rl.TraceLog(rl.LogInfo, "IsGamepadButtonDown: %t", rl.IsGamepadButtonDown(0, rl.GamepadButtonRightFaceDown))
 }
 
 func (game *Game) IncreaseFrameCount() {

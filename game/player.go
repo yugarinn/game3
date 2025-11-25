@@ -12,7 +12,7 @@ const (
 	PLAYER_MOVE_SPEED   float32 = 100
 	PLAYER_ACCELERATION float32 = 500
 	PLAYER_DECELERATION float32 = 700
-	PLAYER_JUMP_FORCE   float32 = -280
+	PLAYER_JUMP_FORCE   float32 = -160
 )
 
 type Player struct {
@@ -23,6 +23,7 @@ type Player struct {
 	Sprite               rl.Texture2D
 	TextureRect          rl.Rectangle
 	HitboxRect           rl.Rectangle
+	InteractiveRect      rl.Rectangle
 	CurrentFrame         int32
 	FramesCounter        int32
 	FramesSpeed          int32
@@ -71,6 +72,14 @@ func InitPlayer() *Player {
 
 	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 8, 8)
 
+	interactiveRect := rl.Rectangle{
+		X:      player.HitboxRect.X - 2,
+		Y:      player.HitboxRect.Y - 2,
+		Width:  player.HitboxRect.Width + 4,
+		Height: player.HitboxRect.Height + 4,
+	}
+	player.InteractiveRect = interactiveRect
+
 	return &player
 }
 
@@ -91,7 +100,6 @@ func (player *Player) Draw(r *Renderer) {
 
 	player.DrawInventory(r)
 	rl.DrawTextureRec(player.Sprite, player.TextureRect, spriteVector, rl.White)
-
 }
 
 func (player *Player) DrawInventory(r *Renderer) {
@@ -136,6 +144,7 @@ func (player *Player) DrawInventory(r *Renderer) {
 
 func (player *Player) DrawHitbox() {
 	rl.DrawRectangleLinesEx(player.HitboxRect, 1, rl.Blue)
+	rl.DrawRectangleLinesEx(player.InteractiveRect, 1, rl.Yellow)
 	rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
 }
 
@@ -155,10 +164,11 @@ func (player *Player) Tick(delta float32, level *Level) {
 }
 
 func (player *Player) ProcessInput(delta float32) {
-	moveLeft := rl.IsKeyDown(rl.KeyA) || rl.IsGamepadButtonDown(1, rl.GamepadButtonLeftFaceLeft)
-	moveRight := rl.IsKeyDown(rl.KeyD) || rl.IsGamepadButtonDown(1, rl.GamepadButtonLeftFaceRight)
-	jump := rl.IsKeyDown(rl.KeySpace)
-	jumpReleased := rl.IsKeyReleased(rl.KeySpace)
+	moveLeft := rl.IsKeyDown(rl.KeyA) || rl.IsGamepadButtonDown(0, rl.GamepadButtonLeftFaceLeft)
+	moveRight := rl.IsKeyDown(rl.KeyD) || rl.IsGamepadButtonDown(0, rl.GamepadButtonLeftFaceRight)
+	jump := rl.IsKeyDown(rl.KeySpace) || rl.IsGamepadButtonDown(0, rl.GamepadButtonRightFaceDown)
+
+	jumpReleased := rl.IsKeyReleased(rl.KeySpace) || rl.IsGamepadButtonReleased(0, rl.GamepadButtonRightFaceDown)
 	dropProp := rl.IsKeyReleased(rl.KeyF)
 
 	// prevents spamming jumps
@@ -290,6 +300,9 @@ func (player *Player) UpdateState() {
 func (player *Player) UpdateHitbox() {
 	player.HitboxRect.X = player.Position.X
 	player.HitboxRect.Y = player.Position.Y
+
+	player.InteractiveRect.X = player.Position.X - 2
+	player.InteractiveRect.Y = player.Position.Y - 2
 }
 
 func (player *Player) UpdateAnimation() {
@@ -302,7 +315,7 @@ func (player *Player) UpdateAnimation() {
 		return
 	}
 
-	if player.FramesCounter >= (60 / player.FramesSpeed) {
+	if player.FramesCounter >= (60 / player.FramesSpeed) && !player.IsJumping {
 		player.FramesCounter = 0
 		player.CurrentFrame++
 
@@ -386,7 +399,7 @@ func (player *Player) PickupCollidingProps(level *Level) {
 			continue
 		}
 
-		if rl.CheckCollisionRecs(player.HitboxRect, prop.HitboxRect) {
+		if rl.CheckCollisionRecs(player.InteractiveRect, prop.HitboxRect) {
 			player.Inventory = append(player.Inventory, prop)
 			level.Props = append(level.Props[:i], level.Props[i+1:]...)
 
@@ -443,7 +456,7 @@ func (player *Player) OpenCollidingClosedDoors(l *Level) {
 			continue
 		}
 
-		if rl.CheckCollisionRecs(player.HitboxRect, prop.HitboxRect) && player.HasKeyInInventory() {
+		if rl.CheckCollisionRecs(player.InteractiveRect, prop.HitboxRect) && player.HasKeyInInventory() {
 			l.Props[i].IsOpen = true
 			l.Props[i].Walkable = true
 			player.RemoveKeyFromInventory()
