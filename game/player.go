@@ -15,34 +15,51 @@ const (
 	PLAYER_JUMP_FORCE   float32 = -160
 )
 
+type FacingDirection int
+
+const (
+	Right FacingDirection = iota
+	Left
+)
+
+type PlayerAction int
+
+const (
+	None PlayerAction = iota
+	Jump
+	PickupProp
+)
+
 type Player struct {
-	Position             rl.Vector2
-	Velocity             rl.Vector2
-	MaxHealth            int8
-	Health               int8
-	Sprite               rl.Texture2D
-	TextureRect          rl.Rectangle
-	HitboxRect           rl.Rectangle
-	InteractiveRect      rl.Rectangle
-	CurrentFrame         int32
-	FramesCounter        int32
-	FramesSpeed          int32
-	FacingDirection      string
-	State                string
-	LastStateChangeAt    float64
-	OnGround             bool
-	IsRunning            bool
-	IsJumping            bool
-	IsFalling            bool
-	CanJump              bool
-	WentNorth            bool
-	WentWest             bool
-	WentSouth            bool
-	WentEast             bool
-	Inventory            []*Prop
-	ActivePropIndex      int
-	IsDroppingActiveProp bool
-	Path                 []rl.Vector2
+	Position          rl.Vector2
+	Velocity          rl.Vector2
+	MaxHealth         int8
+	Health            int8
+	Sprite            rl.Texture2D
+	TextureRect       rl.Rectangle
+	HitboxRect        rl.Rectangle
+	InteractiveRect   rl.Rectangle
+	CurrentFrame      int32
+	FramesCounter     int32
+	FramesSpeed       int32
+	FacingDirection   FacingDirection
+	State             string
+	LastStateChangeAt float64
+	OnGround          bool
+	IsRunning         bool
+	IsJumping         bool
+	IsFalling         bool
+	IsInteracting     bool
+	IsDead            bool
+	CanJump           bool
+	WentNorth         bool
+	WentWest          bool
+	WentSouth         bool
+	WentEast          bool
+	Inventory         []*Prop
+	ActivePropIndex   int
+	Path              []rl.Vector2
+	LastAction        PlayerAction
 }
 
 func InitPlayer() *Player {
@@ -58,16 +75,19 @@ func InitPlayer() *Player {
 		CurrentFrame:    0,
 		FramesCounter:   0,
 		FramesSpeed:     2,
-		FacingDirection: "RIGHT",
+		FacingDirection: Right,
 		State:           "IDLE",
 		OnGround:        false,
 		CanJump:         true,
 		IsJumping:       false,
 		IsFalling:       false,
+		IsInteracting:   false,
+		IsDead:          false,
 		WentNorth:       false,
 		WentWest:        false,
 		WentSouth:       false,
 		WentEast:        false,
+		LastAction:      None,
 	}
 
 	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 8, 8)
@@ -86,12 +106,12 @@ func InitPlayer() *Player {
 func (player *Player) Draw(r *Renderer) {
 	var spriteVector rl.Vector2
 
-	if player.FacingDirection == "RIGHT" {
+	if player.FacingDirection == Right {
 		spriteVector = player.Position
 		player.TextureRect.Width = 8
 	}
 
-	if player.FacingDirection == "LEFT" {
+	if player.FacingDirection == Left {
 		player.TextureRect.Width = -8
 
 		// weird hack, the recommended way to flip a texture in raylib, negating the width, offsets it...
@@ -125,6 +145,11 @@ func (player *Player) DrawInventory(r *Renderer) {
 		if !isMoving && len(player.Path) > 0 {
 			lastGroundPos := player.Path[len(player.Path)-1]
 			offsetX := float32(-(i + 1) * 10)
+
+			if player.FacingDirection == Left {
+				offsetX = -offsetX
+			}
+
 			targetPos = rl.Vector2{
 				X: lastGroundPos.X + offsetX,
 				Y: lastGroundPos.Y,
@@ -148,28 +173,33 @@ func (player *Player) DrawHitbox() {
 	rl.DrawPixel(int32(player.Position.X), int32(player.Position.Y), rl.Green)
 }
 
-func (player *Player) Tick(delta float32, level *Level) {
-	player.ProcessInput(delta)
+func (player *Player) Tick(delta float32, level *Level, activeGamepad int32) {
+	player.LastAction = None
+
 	player.CalculateVelocity(delta)
 	player.UpdatePosition(delta, level)
 	player.UpdateState()
 	player.UpdateAnimation()
-	player.PickupCollidingProps(level)
-	player.OpenCollidingClosedDoors(level)
 	player.RecordPath()
+	player.CheckDeath(level)
 
-	if player.IsDroppingActiveProp {
-		player.DropActiveProp(level)
+	if player.IsInteracting {
+		player.PickupCollidingProps(level)
+		player.OpenCollidingClosedDoors(level)
+
+		player.IsInteracting = false
 	}
+
+	player.ProcessInput(delta, activeGamepad)
 }
 
-func (player *Player) ProcessInput(delta float32) {
-	moveLeft := rl.IsKeyDown(rl.KeyA) || rl.IsGamepadButtonDown(0, rl.GamepadButtonLeftFaceLeft)
-	moveRight := rl.IsKeyDown(rl.KeyD) || rl.IsGamepadButtonDown(0, rl.GamepadButtonLeftFaceRight)
-	jump := rl.IsKeyDown(rl.KeySpace) || rl.IsGamepadButtonDown(0, rl.GamepadButtonRightFaceDown)
+func (player *Player) ProcessInput(delta float32, activeGamepad int32) {
+	moveLeft := rl.IsKeyDown(rl.KeyA) || rl.IsGamepadButtonDown(activeGamepad, rl.GamepadButtonLeftFaceLeft)
+	moveRight := rl.IsKeyDown(rl.KeyD) || rl.IsGamepadButtonDown(activeGamepad, rl.GamepadButtonLeftFaceRight)
+	jump := rl.IsKeyDown(rl.KeySpace) || rl.IsGamepadButtonDown(activeGamepad, rl.GamepadButtonRightFaceDown)
 
-	jumpReleased := rl.IsKeyReleased(rl.KeySpace) || rl.IsGamepadButtonReleased(0, rl.GamepadButtonRightFaceDown)
-	dropProp := rl.IsKeyReleased(rl.KeyF)
+	jumpReleased := rl.IsKeyReleased(rl.KeySpace) || rl.IsGamepadButtonReleased(activeGamepad, rl.GamepadButtonRightFaceDown)
+	isInteracting := rl.IsKeyReleased(rl.KeyE) || rl.IsGamepadButtonReleased(activeGamepad, rl.GamepadButtonRightFaceLeft)
 
 	// prevents spamming jumps
 	if jumpReleased {
@@ -177,7 +207,7 @@ func (player *Player) ProcessInput(delta float32) {
 	}
 
 	if moveLeft && !moveRight {
-		player.FacingDirection = "LEFT"
+		player.FacingDirection = Left
 
 		if player.Velocity.X > -PLAYER_MOVE_SPEED {
 			player.Velocity.X -= PLAYER_ACCELERATION * delta
@@ -189,7 +219,7 @@ func (player *Player) ProcessInput(delta float32) {
 	}
 
 	if moveRight && !moveLeft {
-		player.FacingDirection = "RIGHT"
+		player.FacingDirection = Right
 
 		if player.Velocity.X < PLAYER_MOVE_SPEED {
 			player.Velocity.X += PLAYER_ACCELERATION * delta
@@ -220,14 +250,11 @@ func (player *Player) ProcessInput(delta float32) {
 		player.Velocity.Y = PLAYER_JUMP_FORCE
 		player.OnGround = false
 		player.CanJump = false
+		player.LastAction = Jump
 	}
 
-	if dropProp {
-		if len(player.Inventory) < 1 {
-			return
-		}
-
-		player.IsDroppingActiveProp = true
+	if isInteracting {
+		player.IsInteracting = true
 	}
 }
 
@@ -315,7 +342,7 @@ func (player *Player) UpdateAnimation() {
 		return
 	}
 
-	if player.FramesCounter >= (60 / player.FramesSpeed) && !player.IsJumping {
+	if player.FramesCounter >= (60/player.FramesSpeed) && !player.IsJumping {
 		player.FramesCounter = 0
 		player.CurrentFrame++
 
@@ -342,12 +369,17 @@ func (player *Player) UpdateAnimation() {
 func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle) {
 	player.OnGround = false
 
-	for _, hitbox := range collisionableElements {
-		if rl.CheckCollisionRecs(*hitbox, player.HitboxRect) {
-			overlapLeft := (player.HitboxRect.X + player.HitboxRect.Width) - hitbox.X
-			overlapRight := (hitbox.X + hitbox.Width) - player.HitboxRect.X
-			overlapTop := (player.HitboxRect.Y + player.HitboxRect.Height) - hitbox.Y
-			overlapBottom := (hitbox.Y + hitbox.Height) - player.HitboxRect.Y
+	leftFootPosition := rl.NewVector2(player.Position.X, player.Position.Y+8)
+	rightFootPosition := rl.NewVector2(player.Position.X+8, player.Position.Y+8)
+
+	for _, elementHitbox := range collisionableElements {
+		hits := rl.CheckCollisionPointRec(leftFootPosition, *elementHitbox) || rl.CheckCollisionPointRec(rightFootPosition, *elementHitbox) || rl.CheckCollisionRecs(player.HitboxRect, *elementHitbox)
+
+		if hits {
+			overlapLeft := (player.HitboxRect.X + player.HitboxRect.Width) - elementHitbox.X
+			overlapRight := (elementHitbox.X + elementHitbox.Width) - player.HitboxRect.X
+			overlapTop := (player.HitboxRect.Y + player.HitboxRect.Height) - elementHitbox.Y
+			overlapBottom := (elementHitbox.Y + elementHitbox.Height) - player.HitboxRect.Y
 
 			minOverlap := overlapLeft
 			collisionSide := "LEFT"
@@ -357,7 +389,8 @@ func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle) {
 				collisionSide = "RIGHT"
 			}
 
-			if overlapTop < minOverlap {
+			// The -2 allows player to clip a curb and not be placed at the obstacle's Y position loosing all momentum
+			if overlapTop < minOverlap-2 {
 				minOverlap = overlapTop
 				collisionSide = "TOP"
 			}
@@ -375,17 +408,17 @@ func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle) {
 
 			switch collisionSide {
 			case "TOP":
-				player.Position.Y = hitbox.Y - player.HitboxRect.Height
+				player.Position.Y = elementHitbox.Y - player.HitboxRect.Height
 				player.Velocity.Y = 0
 				player.OnGround = true
 			case "BOTTOM":
-				player.Position.Y = hitbox.Y + hitbox.Height
+				player.Position.Y = elementHitbox.Y + elementHitbox.Height
 				player.Velocity.Y = 0
 			case "LEFT":
-				player.Position.X = hitbox.X - player.HitboxRect.Width
+				player.Position.X = elementHitbox.X - player.HitboxRect.Width
 				player.Velocity.X = 0
 			case "RIGHT":
-				player.Position.X = hitbox.X + hitbox.Width
+				player.Position.X = elementHitbox.X + elementHitbox.Width
 				player.Velocity.X = 0
 			}
 		}
@@ -410,25 +443,17 @@ func (player *Player) PickupCollidingProps(level *Level) {
 	}
 }
 
-func (player *Player) DropActiveProp(level *Level) {
-	if len(player.Inventory) == 0 || player.ActivePropIndex < 0 || player.ActivePropIndex >= len(player.Inventory) {
-		return
+func (player *Player) CheckDeath(level *Level) {
+	for i := len(level.Props) - 1; i >= 0; i-- {
+		prop := level.Props[i]
+		if prop.Type != PropSpikes {
+			continue
+		}
+
+		if rl.CheckCollisionRecs(player.InteractiveRect, prop.HitboxRect) {
+			player.IsDead = true
+		}
 	}
-
-	drop := player.Inventory[player.ActivePropIndex]
-	drop.HitboxRect.X = drop.Position.X
-	drop.HitboxRect.Y = drop.Position.Y
-
-	level.Props = append(level.Props, drop)
-	player.Inventory = append(player.Inventory[:player.ActivePropIndex], player.Inventory[player.ActivePropIndex+1:]...)
-
-	if player.ActivePropIndex >= len(player.Inventory) && len(player.Inventory) > 0 {
-		player.ActivePropIndex = len(player.Inventory) - 1
-	} else if len(player.Inventory) == 0 {
-		player.ActivePropIndex = -1
-	}
-
-	player.IsDroppingActiveProp = false
 }
 
 func (player *Player) IsMoving() bool {
@@ -453,6 +478,10 @@ func (player *Player) RecordPath() {
 func (player *Player) OpenCollidingClosedDoors(l *Level) {
 	for i, prop := range l.Props {
 		if prop.Type != PropDoor {
+			continue
+		}
+
+		if prop.IsOpen {
 			continue
 		}
 

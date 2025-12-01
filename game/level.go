@@ -34,8 +34,10 @@ type LevelNeighbour struct {
 }
 
 func (l *Level) Load() {
-	l.GetLayer("Ground").LoadLayout()
 	l.GetLayer("Background").LoadLayout()
+	l.GetLayer("BackgroundProps").LoadLayout()
+	l.GetLayer("Ground").LoadLayout()
+	l.GetLayer("ForegroundProps").LoadLayout()
 	l.LoadProps()
 	l.LoadParticles()
 	l.LoadCollisionables()
@@ -59,21 +61,8 @@ func (l *Level) Tick(delta float32) {
 	}
 }
 
-func (l *Level) Draw(r *Renderer) {
-	l.DrawBackground(r)
-	l.DrawGround(r)
-}
-
-func (l *Level) DrawBackground(r *Renderer) {
-	for _, tile := range l.GetLayer("Background").Layout {
-		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
-		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
-		r.DrawSprite("tilemap", rec, tile.Position)
-	}
-}
-
-func (l *Level) DrawGround(r *Renderer) {
-	for _, tile := range l.GetLayer("Ground").Layout {
+func (level *Level) DrawLayer(layerName string, r *Renderer) {
+	for _, tile := range level.GetLayer(layerName).Layout {
 		// TODO: could I maybe do just r.DrawGroundTile(tile)????/
 		rec := rl.NewRectangle(tile.SpritePosition.X, tile.SpritePosition.Y, 8, 8)
 		r.DrawSprite("tilemap", rec, tile.Position)

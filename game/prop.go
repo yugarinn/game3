@@ -9,7 +9,7 @@ type PropType int
 const (
 	PropKey PropType = iota
 	PropDoor
-	PropGrass
+	PropSpikes
 	PropGeneral
 )
 
@@ -19,7 +19,6 @@ type Prop struct {
 	Walkable               bool
 	Pushable               bool
 	Sprite                 rl.Texture2D
-	TextureRect            rl.Rectangle
 	Position               rl.Vector2
 	Width                  float32
 	Height                 float32
@@ -64,7 +63,7 @@ func NewPropFromLDtk(entity *LDtkEntity) *Prop {
 	propType := entity.GetPropType()
 	width, height := getDimensionsForType(propType)
 	position := rl.NewVector2(entity.Px[0], entity.Px[1])
-	hitbox := rl.NewRectangle(position.X, position.Y, width, height)
+	hitbox := getHitboxForType(propType, position)
 
 	return &Prop{
 		Type:       propType,
@@ -81,7 +80,7 @@ func (entity *LDtkEntity) GetPropType() PropType {
 	types := map[string]PropType{
 		"Key":    PropKey,
 		"Door":   PropDoor,
-		"Grass1": PropGrass,
+		"Spikes": PropSpikes,
 	}
 
 	if propType, ok := types[entity.ID]; ok {
@@ -102,10 +101,10 @@ func (entity *LDtkEntity) GetCustomFieldValue(identifier string) any {
 }
 
 func getDimensionsForType(propType PropType) (float32, float32) {
-	dimensions := map[PropType][]float32{
+	dimensions := map[PropType][2]float32{
 		PropKey:     {8, 8},
 		PropDoor:    {16, 16},
-		PropGrass:   {8, 8},
+		PropSpikes:  {8, 8},
 		PropGeneral: {8, 8},
 	}
 
@@ -114,4 +113,14 @@ func getDimensionsForType(propType PropType) (float32, float32) {
 	}
 
 	return dimensions[PropGeneral][0], dimensions[PropGeneral][1]
+}
+
+func getHitboxForType(propType PropType, position rl.Vector2) rl.Rectangle {
+	width, height := getDimensionsForType(propType)
+
+	if propType == PropSpikes {
+		return rl.NewRectangle(position.X+2, position.Y+2, width-4, height-2)
+	}
+
+	return rl.NewRectangle(position.X, position.Y, width, height)
 }

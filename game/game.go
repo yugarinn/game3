@@ -48,6 +48,9 @@ type Game struct {
 	CurrentLevel            *Level
 	Renderer                *Renderer
 	DebugMode               bool
+	FrameInspectorMode      bool
+	ActiveGamepad           int32
+	CurrentVFXs             []*VFX
 }
 
 type World struct {
@@ -62,16 +65,9 @@ func InitGame(debugMode bool) *Game {
 	}
 
 	// TODO: the keys from the map can probably be infered from the assets file data
-	// TODO: remove the old textures
-	tilesetGroundImage := rl.LoadImageFromMemory(".png", assets.GROUND_SPRITE_DATA, int32(len(assets.GROUND_SPRITE_DATA)))
-	backgroundDaylightSky := rl.LoadImageFromMemory(".png", assets.BACKRGOUND_DAYLIGHT_SKY, int32(len(assets.BACKRGOUND_DAYLIGHT_SKY)))
-	backgroundUnderground := rl.LoadImageFromMemory(".png", assets.BACKRGOUND_UNDERGROUND, int32(len(assets.BACKRGOUND_UNDERGROUND)))
 	tilemap := rl.LoadImageFromMemory(".png", assets.TILEMAP, int32(len(assets.TILEMAP)))
 	var textures = map[string]rl.Texture2D{
-		"tilemap":                 rl.LoadTextureFromImage(tilemap),
-		"tileset_ground":          rl.LoadTextureFromImage(tilesetGroundImage),
-		"background-daylight-sky": rl.LoadTextureFromImage(backgroundDaylightSky),
-		"background-underground":  rl.LoadTextureFromImage(backgroundUnderground),
+		"tilemap": rl.LoadTextureFromImage(tilemap),
 	}
 
 	renderer := &Renderer{
@@ -107,16 +103,36 @@ func (g *Game) Tick(delta float32) {
 		return
 	}
 
+	g.DetectActiveGamepad()
+	g.ProcessInput()
 	g.CheckRoomChange()
 
-	g.Player.Tick(delta, g.CurrentLevel)
-	g.CurrentLevel.Tick(delta)
+	if g.CanTick() {
+		if g.Player.LastAction == Jump {
+			g.PlayVFX(PlayerJumpVFX, g.Player.Position)
+		}
+
+		if g.Player.IsDead {
+			g.PlayVFX(PlayerDeathVFX, g.Player.Position)
+			g.Reset()
+			g.Player.IsDead = false
+		}
+
+		g.Player.Tick(delta, g.CurrentLevel, g.ActiveGamepad)
+		g.CurrentLevel.Tick(delta)
+	}
 
 	g.Render()
 	g.IncreaseFrameCount()
 
 	if g.DebugMode {
 		g.LogState()
+	}
+}
+
+func (g *Game) ProcessInput() {
+	if rl.IsKeyReleased(rl.KeyI) {
+		g.FrameInspectorMode = !g.FrameInspectorMode
 	}
 }
 
@@ -151,10 +167,14 @@ func (g *Game) FindLevelNameFromID(levelID string) string {
 }
 
 func (g *Game) Render() {
-	g.CurrentLevel.Draw(g.Renderer)
+	g.CurrentLevel.DrawLayer("Background", g.Renderer)
+	g.CurrentLevel.DrawLayer("BackgroundProps", g.Renderer)
+	g.CurrentLevel.DrawLayer("Ground", g.Renderer)
 	g.CurrentLevel.DrawProps(g.Renderer)
 	g.Player.Draw(g.Renderer)
+	g.DrawCurrentVFXs()
 	g.CurrentLevel.DrawParticles(g.Renderer)
+	g.CurrentLevel.DrawLayer("ForegroundProps", g.Renderer)
 
 	if g.DebugMode {
 		g.Player.DrawHitbox()
@@ -198,7 +218,7 @@ func (g *Game) CheckRoomChange() {
 	g.Player.WentWest = false
 }
 
-func (game *Game) LogState() {
+func (g *Game) LogState() {
 	// rl.TraceLog(rl.LogInfo, "=======")
 	// rl.TraceLog(rl.LogInfo, "frame: %d", game.AbsoluteFrame)
 	// rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
@@ -221,9 +241,62 @@ func (game *Game) LogState() {
 	rl.TraceLog(rl.LogInfo, "IsGamepadAvailable: %t", rl.IsGamepadAvailable(0))
 	rl.TraceLog(rl.LogInfo, "IsGamepadAvailable: %t", rl.IsGamepadAvailable(0))
 	rl.TraceLog(rl.LogInfo, "GamepadName: %s", rl.GetGamepadName(0))
-	rl.TraceLog(rl.LogInfo, "IsGamepadButtonDown: %t", rl.IsGamepadButtonDown(0, rl.GamepadButtonRightFaceDown))
+	rl.TraceLog(rl.LogInfo, "IsGamepadButtonDown: %t", rl.IsGamepadButtonDown(1, rl.GamepadButtonRightFaceDown))
+	rl.TraceLog(rl.LogInfo, "FrameInspectorMode: %t", g.FrameInspectorMode)
 }
 
-func (game *Game) IncreaseFrameCount() {
-	game.AbsoluteFrame += 1
+func (g *Game) IncreaseFrameCount() {
+	g.AbsoluteFrame += 1
+}
+
+func (g *Game) CanTick() bool {
+	if g.FrameInspectorMode && rl.IsKeyReleased(rl.KeyN) {
+		return true
+	}
+
+	if g.FrameInspectorMode {
+		return false
+	}
+
+	return true
+}
+
+func (game *Game) Reset() {
+	game.Player.Position = rl.NewVector2(270, 11)
+	game.Player.Velocity.Y = 20
+	game.LoadLevel("Level_0")
+}
+
+func (game *Game) DetectActiveGamepad() {
+	for i := range int32(4) {
+		if rl.IsGamepadAvailable(i) {
+			game.ActiveGamepad = i
+			return
+		}
+	}
+}
+
+func (game *Game) PlayVFX(vfxType VFXType, position rl.Vector2) {
+	vfx := NewVFX(vfxType, position)
+	game.CurrentVFXs = append(game.CurrentVFXs, &vfx)
+}
+
+func (game *Game) DrawCurrentVFXs() {
+	for i, vfx := range game.CurrentVFXs {
+		game.Renderer.DrawVFX(vfx)
+		vfx.AnimationCurrentFrame += 1
+
+		if vfx.AnimationCurrentFrame%vfx.AnimationFramesPerPosition == 0 {
+			vfx.AnimationCurrentPosition += 1
+			vfx.AnimationCurrentFrame = 0
+		}
+
+		if vfx.AnimationCurrentPosition >= vfx.AnimationPositionsCounter {
+			if vfx.Loops {
+				vfx.AnimationCurrentPosition = 0
+			} else {
+				game.CurrentVFXs = append(game.CurrentVFXs[:i], game.CurrentVFXs[i+1:]...)
+			}
+		}
+	}
 }

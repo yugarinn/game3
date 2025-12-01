@@ -37,11 +37,17 @@ func (r *Renderer) DrawProp(prop *Prop) {
 	}
 }
 
+func (r *Renderer) DrawVFX(vfx *VFX) {
+	tilemapPositionX, tilemapPositionY := getVFXTilemapPosition(vfx.Type, vfx.AnimationCurrentPosition)
+	rec := rl.NewRectangle(tilemapPositionX, tilemapPositionY, 8, 8)
+	rl.DrawTextureRec(r.Textures["tilemap"], rec, vfx.Position, rl.White)
+}
+
 func getPropTilemapPosition(propType PropType, isOpen bool) (float32, float32) {
 	positions := map[PropType][]float32{
-		PropKey:   {48, 32},
-		PropDoor:  {88, 48},
-		PropGrass: {40, 32},
+		PropKey:    {48, 32},
+		PropDoor:   {88, 48},
+		PropSpikes: {0, 40},
 	}
 
 	if position, ok := positions[propType]; ok {
@@ -51,6 +57,22 @@ func getPropTilemapPosition(propType PropType, isOpen bool) (float32, float32) {
 		if isOpen && propType == PropDoor {
 			positionX += 16
 		}
+
+		return positionX, positionY
+	}
+
+	return 0, 0
+}
+
+func getVFXTilemapPosition(vfxType VFXType, animationCurrentPosition int32) (float32, float32) {
+	positions := map[VFXType][]float32{
+		PlayerJumpVFX:  {120, 0},
+		PlayerDeathVFX: {56, 48},
+	}
+
+	if position, ok := positions[vfxType]; ok {
+		positionX := position[0] + (8 * float32(animationCurrentPosition))
+		positionY := position[1]
 
 		return positionX, positionY
 	}
