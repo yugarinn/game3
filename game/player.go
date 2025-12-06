@@ -258,61 +258,64 @@ func (player *Player) ProcessInput(delta float32, activeGamepad int32) {
 }
 
 func (player *Player) UpdatePosition(delta float32, level *Level) {
-	hitsGround := player.HandleCollisions(level.CollisionableHitboxes, level, delta)
-
-	if !hitsGround {
-		player.Velocity.Y += GRAVITY * delta
-		if player.Velocity.Y > FALL_TERMINAL_VELOCITY {
-			player.Velocity.Y = FALL_TERMINAL_VELOCITY
-		}
+	// Apply gravity FIRST
+	player.Velocity.Y += GRAVITY * delta
+	if player.Velocity.Y > FALL_TERMINAL_VELOCITY {
+		player.Velocity.Y = FALL_TERMINAL_VELOCITY
 	}
+	
+	// NOW check collisions with the updated velocity
+	player.HandleCollisions(level.CollisionableHitboxes, level, delta)
+	
 	rl.TraceLog(rl.LogInfo, "%f", player.Velocity.Y)
-
+	
+	// Apply velocity (might be zeroed by HandleCollisions)
 	player.Position.X += player.Velocity.X * delta
 	player.Position.Y += player.Velocity.Y * delta
-
+	
+	// Screen wrapping
 	if player.Position.Y < -5 {
 		player.Position.Y = 180
 		player.WentNorth = true
 	}
-
 	if player.Position.X > 320 {
 		player.Position.X = 0
 		player.WentEast = true
 	}
-
 	if player.Position.Y > 185 {
 		player.Position.Y = 0
 		player.WentSouth = true
 	}
-
 	if player.Position.X < 0 {
 		player.Position.X = 320
 		player.WentWest = true
 	}
-
+	
 	player.UpdateHitbox()
 }
 
-func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle, level *Level, delta float32) bool {
-	hitsGround := false
+func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle, level *Level, delta float32) {
 	playerPosition := rl.NewVector2(player.Position.X, player.Position.Y)
 	playerSize := rl.NewVector2(8, 8)
 	frameVelocity := rl.Vector2Scale(player.Velocity, delta)
 	ray := Ray2D{playerPosition, frameVelocity}
-
+	
+	player.OnGround = false
+	
 	for _, collisionable := range level.CollisionableHitboxes {
 		timeToHit, hits := CheckRay2DRectangleCollision(ray, *collisionable, playerSize)
-
-		if hits && timeToHit < 1 {
+		if hits && timeToHit < 1 && timeToHit >= 0 {
 			rl.DrawRectangleRec(*collisionable, rl.Red)
-			hitsGround = true
-			player.Velocity.Y = 0
-			player.Position.Y = collisionable.Y - playerSize.Y
+			
+			// Only handle downward collisions (landing on platform)
+			if player.Velocity.Y > 0 {
+				player.OnGround = true
+				player.Velocity.Y = 0
+				player.Position.Y = collisionable.Y - playerSize.Y
+				break
+			}
 		}
 	}
-
-	return hitsGround
 }
 
 func (player *Player) UpdateState() {
