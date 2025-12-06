@@ -176,7 +176,6 @@ func (player *Player) DrawHitbox() {
 func (player *Player) Tick(delta float32, level *Level, activeGamepad int32) {
 	player.LastAction = None
 
-	player.CalculateVelocity(delta)
 	player.UpdatePosition(delta, level)
 	player.UpdateState()
 	player.UpdateAnimation()
@@ -258,22 +257,19 @@ func (player *Player) ProcessInput(delta float32, activeGamepad int32) {
 	}
 }
 
-func (player *Player) CalculateVelocity(delta float32) {
-	if !player.OnGround {
-		player.Velocity.Y += GRAVITY * delta
-	}
-
-	if player.Velocity.Y > FALL_TERMINAL_VELOCITY {
-		player.Velocity.Y = FALL_TERMINAL_VELOCITY
-	}
-}
-
 func (player *Player) UpdatePosition(delta float32, level *Level) {
+	hitsGround := player.HandleCollisions(level.CollisionableHitboxes, level, delta)
+
+	if !hitsGround {
+		player.Velocity.Y += GRAVITY * delta
+		if player.Velocity.Y > FALL_TERMINAL_VELOCITY {
+			player.Velocity.Y = FALL_TERMINAL_VELOCITY
+		}
+	}
+	rl.TraceLog(rl.LogInfo, "%f", player.Velocity.Y)
+
 	player.Position.X += player.Velocity.X * delta
 	player.Position.Y += player.Velocity.Y * delta
-
-	player.UpdateHitbox()
-	player.HandleCollisions(level.CollisionableHitboxes)
 
 	if player.Position.Y < -5 {
 		player.Position.Y = 180
@@ -294,6 +290,29 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 		player.Position.X = 320
 		player.WentWest = true
 	}
+
+	player.UpdateHitbox()
+}
+
+func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle, level *Level, delta float32) bool {
+	hitsGround := false
+	playerPosition := rl.NewVector2(player.Position.X, player.Position.Y)
+	playerSize := rl.NewVector2(8, 8)
+	frameVelocity := rl.Vector2Scale(player.Velocity, delta)
+	ray := Ray2D{playerPosition, frameVelocity}
+
+	for _, collisionable := range level.CollisionableHitboxes {
+		timeToHit, hits := CheckRay2DRectangleCollision(ray, *collisionable, playerSize)
+
+		if hits && timeToHit < 1 {
+			rl.DrawRectangleRec(*collisionable, rl.Red)
+			hitsGround = true
+			player.Velocity.Y = 0
+			player.Position.Y = collisionable.Y - playerSize.Y
+		}
+	}
+
+	return hitsGround
 }
 
 func (player *Player) UpdateState() {
@@ -363,65 +382,6 @@ func (player *Player) UpdateAnimation() {
 			player.TextureRect.X = offset
 		}
 
-	}
-}
-
-func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle) {
-	player.OnGround = false
-
-	leftFootPosition := rl.NewVector2(player.Position.X, player.Position.Y+8)
-	rightFootPosition := rl.NewVector2(player.Position.X+8, player.Position.Y+8)
-
-	for _, elementHitbox := range collisionableElements {
-		hits := rl.CheckCollisionPointRec(leftFootPosition, *elementHitbox) || rl.CheckCollisionPointRec(rightFootPosition, *elementHitbox) || rl.CheckCollisionRecs(player.HitboxRect, *elementHitbox)
-
-		if hits {
-			overlapLeft := (player.HitboxRect.X + player.HitboxRect.Width) - elementHitbox.X
-			overlapRight := (elementHitbox.X + elementHitbox.Width) - player.HitboxRect.X
-			overlapTop := (player.HitboxRect.Y + player.HitboxRect.Height) - elementHitbox.Y
-			overlapBottom := (elementHitbox.Y + elementHitbox.Height) - player.HitboxRect.Y
-
-			minOverlap := overlapLeft
-			collisionSide := "LEFT"
-
-			if overlapRight < minOverlap {
-				minOverlap = overlapRight
-				collisionSide = "RIGHT"
-			}
-
-			// The -2 allows player to clip a curb and not be placed at the obstacle's Y position loosing all momentum
-			if overlapTop < minOverlap-2 {
-				minOverlap = overlapTop
-				collisionSide = "TOP"
-			}
-
-			if overlapBottom < minOverlap {
-				minOverlap = overlapBottom
-				collisionSide = "BOTTOM"
-			}
-
-			// This is my poor man's solution to ghost colliding
-			// https://briansemrau.github.io/dealing-with-ghost-collisions/
-			if (collisionSide == "LEFT" || collisionSide == "RIGHT") && overlapBottom > 0 && overlapBottom > overlapTop {
-				continue
-			}
-
-			switch collisionSide {
-			case "TOP":
-				player.Position.Y = elementHitbox.Y - player.HitboxRect.Height
-				player.Velocity.Y = 0
-				player.OnGround = true
-			case "BOTTOM":
-				player.Position.Y = elementHitbox.Y + elementHitbox.Height
-				player.Velocity.Y = 0
-			case "LEFT":
-				player.Position.X = elementHitbox.X - player.HitboxRect.Width
-				player.Velocity.X = 0
-			case "RIGHT":
-				player.Position.X = elementHitbox.X + elementHitbox.Width
-				player.Velocity.X = 0
-			}
-		}
 	}
 }
 
@@ -511,4 +471,11 @@ func (player *Player) RemoveKeyFromInventory() {
 			player.Inventory = append(player.Inventory[:i], player.Inventory[i+1:]...)
 		}
 	}
+}
+
+func abs(x float32) float32 {
+	if x < 0 {
+		return -x
+	}
+	return x
 }

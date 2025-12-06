@@ -21,8 +21,8 @@ const (
 )
 
 const (
-	GRAVITY                float32 = 500
-	FALL_TERMINAL_VELOCITY float32 = 600
+	GRAVITY                float32 = 50
+	FALL_TERMINAL_VELOCITY float32 = 250
 	DEBUG                  bool    = false
 )
 
@@ -103,6 +103,9 @@ func (g *Game) Tick(delta float32) {
 		return
 	}
 
+	g.Render()
+	g.IncreaseFrameCount()
+
 	g.DetectActiveGamepad()
 	g.ProcessInput()
 	g.CheckRoomChange()
@@ -121,9 +124,6 @@ func (g *Game) Tick(delta float32) {
 		g.Player.Tick(delta, g.CurrentLevel, g.ActiveGamepad)
 		g.CurrentLevel.Tick(delta)
 	}
-
-	g.Render()
-	g.IncreaseFrameCount()
 
 	if g.DebugMode {
 		g.LogState()
@@ -218,10 +218,11 @@ func (g *Game) CheckRoomChange() {
 	g.Player.WentWest = false
 }
 
-func (g *Game) LogState() {
+func (game *Game) LogState() {
 	// rl.TraceLog(rl.LogInfo, "=======")
 	// rl.TraceLog(rl.LogInfo, "frame: %d", game.AbsoluteFrame)
-	// rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
+	rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
+	rl.TraceLog(rl.LogInfo, "collisionable.Position: %f", game.CurrentLevel.CollisionableHitboxes[game.CurrentLevel.PlayerCollisionIndex])
 	// rl.TraceLog(rl.LogInfo, "player.FramesCounter: %d", game.Player.FramesCounter)
 	// rl.TraceLog(rl.LogInfo, "player.Position.X: %f", game.Player.Position.X)
 	// rl.TraceLog(rl.LogInfo, "player.Position.Y: %f", game.Player.Position.Y)
@@ -238,11 +239,11 @@ func (g *Game) LogState() {
 	// 	rl.TraceLog(rl.LogInfo, "level.Props: %#v", prop)
 	// }
 
-	rl.TraceLog(rl.LogInfo, "IsGamepadAvailable: %t", rl.IsGamepadAvailable(0))
-	rl.TraceLog(rl.LogInfo, "IsGamepadAvailable: %t", rl.IsGamepadAvailable(0))
-	rl.TraceLog(rl.LogInfo, "GamepadName: %s", rl.GetGamepadName(0))
-	rl.TraceLog(rl.LogInfo, "IsGamepadButtonDown: %t", rl.IsGamepadButtonDown(1, rl.GamepadButtonRightFaceDown))
-	rl.TraceLog(rl.LogInfo, "FrameInspectorMode: %t", g.FrameInspectorMode)
+	/// rl.TraceLog(rl.LogInfo, "IsGamepadAvailable: %t", rl.IsGamepadAvailable(0))
+	/// rl.TraceLog(rl.LogInfo, "IsGamepadAvailable: %t", rl.IsGamepadAvailable(0))
+	/// rl.TraceLog(rl.LogInfo, "GamepadName: %s", rl.GetGamepadName(0))
+	/// rl.TraceLog(rl.LogInfo, "IsGamepadButtonDown: %t", rl.IsGamepadButtonDown(1, rl.GamepadButtonRightFaceDown))
+	/// rl.TraceLog(rl.LogInfo, "FrameInspectorMode: %t", game.FrameInspectorMode)
 }
 
 func (g *Game) IncreaseFrameCount() {
@@ -262,9 +263,9 @@ func (g *Game) CanTick() bool {
 }
 
 func (game *Game) Reset() {
-	game.Player.Position = rl.NewVector2(270, 11)
-	game.Player.Velocity.Y = 20
-	game.LoadLevel("Level_0")
+	game.LoadLevel("Level_2")
+	game.Player.Position = rl.NewVector2(147, 82)
+	game.Player.Velocity.Y = 0
 }
 
 func (game *Game) DetectActiveGamepad() {

@@ -16,6 +16,7 @@ type Level struct {
 	Props                 []*Prop
 	Particles             []*Particle
 	CollisionableHitboxes []*rl.Rectangle
+	PlayerCollisionIndex  int
 }
 
 type LevelLayer struct {
