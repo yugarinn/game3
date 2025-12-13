@@ -42,6 +42,7 @@ func main() {
 	rl.SetExitKey(0)
 
 	debugMode := flag.Bool("debug", false, "init the game in debug mode")
+	collisionSystem := flag.Int("debug", int(game.Regular), "init the game in debug mode")
 	flag.Parse()
 
 	instance := game.InitGame(*debugMode)

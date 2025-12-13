@@ -1,9 +1,12 @@
 package game
 
 import (
+	"math"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	"game3/assets"
+	"game3/collisions"
 )
 
 const (
@@ -12,7 +15,7 @@ const (
 	PLAYER_MOVE_SPEED   float32 = 100
 	PLAYER_ACCELERATION float32 = 500
 	PLAYER_DECELERATION float32 = 700
-	PLAYER_JUMP_FORCE   float32 = -160
+	PLAYER_JUMP_FORCE   float32 = -200
 )
 
 type FacingDirection int
@@ -258,22 +261,18 @@ func (player *Player) ProcessInput(delta float32, activeGamepad int32) {
 }
 
 func (player *Player) UpdatePosition(delta float32, level *Level) {
-	// Apply gravity FIRST
-	player.Velocity.Y += GRAVITY * delta
-	if player.Velocity.Y > FALL_TERMINAL_VELOCITY {
-		player.Velocity.Y = FALL_TERMINAL_VELOCITY
+	if !player.OnGround {
+		player.Velocity.Y += GRAVITY * delta
+		if player.Velocity.Y >= FALL_TERMINAL_VELOCITY {
+			player.Velocity.Y = FALL_TERMINAL_VELOCITY
+		}
 	}
-	
-	// NOW check collisions with the updated velocity
+
 	player.HandleCollisions(level.CollisionableHitboxes, level, delta)
-	
-	rl.TraceLog(rl.LogInfo, "%f", player.Velocity.Y)
-	
-	// Apply velocity (might be zeroed by HandleCollisions)
+
 	player.Position.X += player.Velocity.X * delta
 	player.Position.Y += player.Velocity.Y * delta
-	
-	// Screen wrapping
+
 	if player.Position.Y < -5 {
 		player.Position.Y = 180
 		player.WentNorth = true
@@ -290,29 +289,34 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 		player.Position.X = 320
 		player.WentWest = true
 	}
-	
+
 	player.UpdateHitbox()
 }
 
 func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle, level *Level, delta float32) {
-	playerPosition := rl.NewVector2(player.Position.X, player.Position.Y)
-	playerSize := rl.NewVector2(8, 8)
-	frameVelocity := rl.Vector2Scale(player.Velocity, delta)
-	ray := Ray2D{playerPosition, frameVelocity}
-	
 	player.OnGround = false
-	
-	for _, collisionable := range level.CollisionableHitboxes {
-		timeToHit, hits := CheckRay2DRectangleCollision(ray, *collisionable, playerSize)
-		if hits && timeToHit < 1 && timeToHit >= 0 {
-			rl.DrawRectangleRec(*collisionable, rl.Red)
-			
-			// Only handle downward collisions (landing on platform)
-			if player.Velocity.Y > 0 {
+
+	for _, collisionable := range collisionableElements {
+		hits, hitFace := collisions.CheckRectanglesCollision(player.HitboxRect, *collisionable)
+
+		if hits {
+			rl.TraceLog(rl.LogInfo, "%d", hitFace)
+
+			if hitFace == collisions.FaceRight {
+				player.Velocity.X = float32(math.Max(0, float64(player.Velocity.X)))
+			}
+
+			if hitFace == collisions.FaceLeft {
+				player.Velocity.X = float32(math.Min(0, float64(player.Velocity.X)))
+			}
+
+			if hitFace == collisions.FaceTop {
+				player.Velocity.Y = float32(math.Min(0, float64(player.Velocity.Y)))
 				player.OnGround = true
-				player.Velocity.Y = 0
-				player.Position.Y = collisionable.Y - playerSize.Y
-				break
+			}
+
+			if hitFace == collisions.FaceBottom {
+				player.Velocity.Y = float32(math.Max(0, float64(player.Velocity.Y)))
 			}
 		}
 	}
@@ -474,11 +478,4 @@ func (player *Player) RemoveKeyFromInventory() {
 			player.Inventory = append(player.Inventory[:i], player.Inventory[i+1:]...)
 		}
 	}
-}
-
-func abs(x float32) float32 {
-	if x < 0 {
-		return -x
-	}
-	return x
 }

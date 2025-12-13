@@ -20,9 +20,16 @@ const (
 	Editing
 )
 
+type CollisionSystem int
+
 const (
-	GRAVITY                float32 = 50
-	FALL_TERMINAL_VELOCITY float32 = 250
+	Regular CollisionSystem = iota
+	RayCasting
+)
+
+const (
+	GRAVITY                float32 = 700
+	FALL_TERMINAL_VELOCITY float32 = 300
 	DEBUG                  bool    = false
 )
 
@@ -51,6 +58,7 @@ type Game struct {
 	FrameInspectorMode      bool
 	ActiveGamepad           int32
 	CurrentVFXs             []*VFX
+	CollisionSystem         CollisionSystem
 }
 
 type World struct {
@@ -58,7 +66,7 @@ type World struct {
 	Levels []*Level `json:"levels"`
 }
 
-func InitGame(debugMode bool) *Game {
+func InitGame(collisionSystem CollisionSystem, debugMode bool) *Game {
 	world, loadWorldErr := LoadWorld()
 	if loadWorldErr != nil {
 		panic(fmt.Sprintf("error loading world: %s", loadWorldErr.Error()))
@@ -83,6 +91,7 @@ func InitGame(debugMode bool) *Game {
 		World:     world,
 		Renderer:  renderer,
 		DebugMode: debugMode,
+		CollisionSystem: collisionSystem,
 	}
 
 	game.LoadLevel("Level_4")
@@ -178,6 +187,23 @@ func (g *Game) Render() {
 
 	if g.DebugMode {
 		g.Player.DrawHitbox()
+
+		// playerPosition := rl.NewVector2(g.Player.Position.X, g.Player.Position.Y)
+		// rayOrigin := rl.NewVector2(playerPosition.X+g.Player.HitboxRect.Width/2, playerPosition.Y+g.Player.HitboxRect.Height/2)
+
+		// mousePosition := rl.GetMousePosition()
+		// rayDirection := rl.Vector2Subtract(mousePosition, rayOrigin)
+		// ray := Ray2D{Origin: rayOrigin, Direction: rayDirection}
+
+		// rl.DrawLine(int32(rayOrigin.X), int32(rayOrigin.Y), int32(mousePosition.X), int32(mousePosition.Y), rl.Green)
+
+		// for _, collisionable := range g.CurrentLevel.CollisionableHitboxes {
+		// 	timeToHit, hits, _ := CheckRay2DRectangleCollision(ray, *collisionable, rl.NewVector2(8, 8))
+
+		// 	if hits && timeToHit < 1 {
+		// 		rl.DrawRectangleLinesEx(*collisionable, 1, rl.Purple)
+		// 	}
+		// }
 	}
 }
 
@@ -221,8 +247,8 @@ func (g *Game) CheckRoomChange() {
 func (game *Game) LogState() {
 	// rl.TraceLog(rl.LogInfo, "=======")
 	// rl.TraceLog(rl.LogInfo, "frame: %d", game.AbsoluteFrame)
-	rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
-	rl.TraceLog(rl.LogInfo, "collisionable.Position: %f", game.CurrentLevel.CollisionableHitboxes[game.CurrentLevel.PlayerCollisionIndex])
+	// rl.TraceLog(rl.LogInfo, "player.Velocity: %f", game.Player.Velocity)
+	// rl.TraceLog(rl.LogInfo, "collisionable.Position: %f", game.CurrentLevel.CollisionableHitboxes[game.CurrentLevel.PlayerCollisionIndex])
 	// rl.TraceLog(rl.LogInfo, "player.FramesCounter: %d", game.Player.FramesCounter)
 	// rl.TraceLog(rl.LogInfo, "player.Position.X: %f", game.Player.Position.X)
 	// rl.TraceLog(rl.LogInfo, "player.Position.Y: %f", game.Player.Position.Y)
@@ -266,6 +292,7 @@ func (game *Game) Reset() {
 	game.LoadLevel("Level_2")
 	game.Player.Position = rl.NewVector2(147, 82)
 	game.Player.Velocity.Y = 0
+	game.Player.OnGround = false
 }
 
 func (game *Game) DetectActiveGamepad() {
