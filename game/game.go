@@ -23,8 +23,8 @@ const (
 type CollisionSystem int
 
 const (
-	Regular CollisionSystem = iota
-	RayCasting
+	RegularCollision CollisionSystem = iota
+	RayCastedCollision
 )
 
 const (
@@ -66,7 +66,7 @@ type World struct {
 	Levels []*Level `json:"levels"`
 }
 
-func InitGame(collisionSystem CollisionSystem, debugMode bool) *Game {
+func InitGame(debugMode bool, raycasted bool) *Game {
 	world, loadWorldErr := LoadWorld()
 	if loadWorldErr != nil {
 		panic(fmt.Sprintf("error loading world: %s", loadWorldErr.Error()))
@@ -83,14 +83,19 @@ func InitGame(collisionSystem CollisionSystem, debugMode bool) *Game {
 		DebugMode: debugMode,
 	}
 
-	pc := InitPlayer()
+
+	collisionSystem := RegularCollision
+	if raycasted {
+		collisionSystem = RayCastedCollision
+	}
+	pc := InitPlayer(collisionSystem)
 
 	game := Game{
-		Player:    pc,
-		State:     Playing,
-		World:     world,
-		Renderer:  renderer,
-		DebugMode: debugMode,
+		Player:          pc,
+		State:           Playing,
+		World:           world,
+		Renderer:        renderer,
+		DebugMode:       debugMode,
 		CollisionSystem: collisionSystem,
 	}
 

@@ -42,10 +42,10 @@ func main() {
 	rl.SetExitKey(0)
 
 	debugMode := flag.Bool("debug", false, "init the game in debug mode")
-	collisionSystem := flag.Int("debug", int(game.Regular), "init the game in debug mode")
+	raycastedCCDMode := flag.Bool("raycasted", false, "use raycasted ccd")
 	flag.Parse()
 
-	instance := game.InitGame(*debugMode)
+	instance := game.InitGame(*debugMode, *raycastedCCDMode)
 
 	for !rl.WindowShouldClose() {
 		updateScreenScale()

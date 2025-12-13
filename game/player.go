@@ -63,9 +63,10 @@ type Player struct {
 	ActivePropIndex   int
 	Path              []rl.Vector2
 	LastAction        PlayerAction
+	CollisionSystem   CollisionSystem
 }
 
-func InitPlayer() *Player {
+func InitPlayer(collisionSystem CollisionSystem) *Player {
 	playerImage := rl.LoadImageFromMemory(".png", assets.TILEMAP, int32(len(assets.TILEMAP)))
 
 	player := Player{
@@ -91,6 +92,7 @@ func InitPlayer() *Player {
 		WentSouth:       false,
 		WentEast:        false,
 		LastAction:      None,
+		CollisionSystem: collisionSystem,
 	}
 
 	player.HitboxRect = rl.NewRectangle(player.Position.X, player.Position.Y, 8, 8)
@@ -268,7 +270,11 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 		}
 	}
 
-	player.HandleCollisions(level.CollisionableHitboxes, level, delta)
+	if player.CollisionSystem == RayCastedCollision {
+		player.HandleRayCastedCollisions(level.CollisionableHitboxes, level, delta)
+	} else {
+		player.HandleRegularCollisions(level.CollisionableHitboxes, level, delta)
+	}
 
 	player.Position.X += player.Velocity.X * delta
 	player.Position.Y += player.Velocity.Y * delta
@@ -293,7 +299,7 @@ func (player *Player) UpdatePosition(delta float32, level *Level) {
 	player.UpdateHitbox()
 }
 
-func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle, level *Level, delta float32) {
+func (player *Player) HandleRegularCollisions(collisionableElements []*rl.Rectangle, level *Level, delta float32) {
 	player.OnGround = false
 
 	for _, collisionable := range collisionableElements {
@@ -320,6 +326,10 @@ func (player *Player) HandleCollisions(collisionableElements []*rl.Rectangle, le
 			}
 		}
 	}
+}
+
+func (player *Player) HandleRayCastedCollisions(collisionableElements []*rl.Rectangle, level *Level, delta float32) {
+	
 }
 
 func (player *Player) UpdateState() {
